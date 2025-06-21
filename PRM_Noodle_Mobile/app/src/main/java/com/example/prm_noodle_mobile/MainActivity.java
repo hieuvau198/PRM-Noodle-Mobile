@@ -1,5 +1,4 @@
 package com.example.prm_noodle_mobile;
-// FILE: app/src/main/java/com/example/prm_noodle_mobile/MainActivity.java
 
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -7,6 +6,9 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import com.example.prm_noodle_mobile.customer.home.HomeFragment;
+import com.example.prm_noodle_mobile.customer.productdetail.ProductDetailFragment;
+import com.example.prm_noodle_mobile.customer.cart.CartFragment;
+import com.example.prm_noodle_mobile.customer.orderconfirm.OrderConfirmFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
@@ -31,8 +33,13 @@ public class MainActivity extends AppCompatActivity {
 
             if (itemId == R.id.nav_home) {
                 selectedFragment = new HomeFragment();
+            } else if (itemId == R.id.nav_product_detail) {
+                selectedFragment = new ProductDetailFragment();
+            } else if (itemId == R.id.nav_cart) {
+                selectedFragment = new CartFragment();
+            } else if (itemId == R.id.nav_order_confirm) {
+                selectedFragment = new OrderConfirmFragment();
             }
-            // We'll add other fragments later
 
             if (selectedFragment != null) {
                 loadFragment(selectedFragment);
