@@ -1,5 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <!-- Primary Colors -->
+    <color name="primary_color">#D32F2F</color>
+    <color name="primary_dark_color">#B71C1C</color>
+    <color name="primary_light_color">#FFCDD2</color>
+
+    <!-- Text Colors -->
+    <color name="primary_text_color">#212121</color>
+    <color name="secondary_text_color">#757575</color>
+    <color name="price_color">#FF5722</color>
+
+    <!-- Background Colors -->
+    <color name="background_color">#FAFAFA</color>
+    <color name="white">#FFFFFF</color>
+    <color name="image_placeholder_color">#E0E0E0</color>
+
+    <!-- Offer Colors -->
+    <color name="offer_background">#FF8A65</color>
+    <color name="offer_text_color">#FFFFFF</color>
+
+    <!-- Navigation Colors -->
+    <color name="bottom_nav_color">@color/primary_color</color>
+
+    <!-- Spice Level Colors -->
+    <color name="spice_mild">#4CAF50</color>
+    <color name="spice_medium">#FF9800</color>
+    <color name="spice_spicy">#FF5722</color>
+    <color name="spice_very_spicy">#D32F2F</color>
 </resources>
