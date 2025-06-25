@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:padding="8dp">
+    <androidx.cardview.widget.CardView
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        app:cardCornerRadius="60dp"
+        app:cardElevation="8dp"
+        app:cardBackgroundColor="@color/background_card">
+        <ImageView
+            android:id="@+id/category_icon"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="center"
+            android:scaleType="fitCenter"
+            tools:src="@drawable/noodle" />
+    </androidx.cardview.widget.CardView>
+    <TextView
+        android:id="@+id/category_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:textColor="@color/text_secondary"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:maxLines="2"
+        android:ellipsize="end"
+        tools:text="Mì Kim Chi"/>
+</LinearLayout> 

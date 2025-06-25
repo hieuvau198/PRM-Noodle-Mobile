@@ -1,30 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Primary Colors -->
-    <color name="primary_color">#D32F2F</color>
-    <color name="primary_dark_color">#B71C1C</color>
-    <color name="primary_light_color">#FFCDD2</color>
-
-    <!-- Text Colors -->
+    <color name="primary">#D32F2F</color>
+    <color name="primary_light">#FFEBEE</color>
+    <color name="primary_dark">#B71C1C</color>
+    <color name="accent_gold">#FFD700</color>
+    <color name="accent_green">#4CAF50</color>
+    <color name="background_light">#FAFAFA</color>
+    <color name="background_card">#FFFFFF</color>
+    <color name="background_section">#F5F5F5</color>
+    <color name="divider_color">#E0E0E0</color>
+    <color name="text_primary">#222222</color>
+    <color name="text_secondary">#757575</color>
+    <color name="text_hint">#BDBDBD</color>
+    <color name="text_on_primary">#FFFFFF</color>
+    <color name="spicy_red">#E84545</color>
+    <color name="badge_best">#FF9800</color>
+    <color name="badge_hot">#D32F2F</color>
+    <color name="badge_new">#4CAF50</color>
+    <color name="button_bg">#D32F2F</color>
+    <color name="button_text">#FFFFFF</color>
     <color name="primary_text_color">#212121</color>
     <color name="secondary_text_color">#757575</color>
     <color name="price_color">#FF5722</color>
-
-    <!-- Background Colors -->
     <color name="background_color">#FAFAFA</color>
     <color name="white">#FFFFFF</color>
     <color name="image_placeholder_color">#E0E0E0</color>
-
-    <!-- Offer Colors -->
     <color name="offer_background">#FF8A65</color>
     <color name="offer_text_color">#FFFFFF</color>
-
-    <!-- Navigation Colors -->
-    <color name="bottom_nav_color">@color/primary_color</color>
-
-    <!-- Spice Level Colors -->
+    <color name="bottom_nav_color">#D32F2F</color>
     <color name="spice_mild">#4CAF50</color>
     <color name="spice_medium">#FF9800</color>
     <color name="spice_spicy">#FF5722</color>
     <color name="spice_very_spicy">#D32F2F</color>
+    <color name="black">#FF000000</color>
+    <color name="spicy_red_dark">#9D0B0B</color>
+    <color name="spicy_red_light">#E84545</color>
+    <color name="background_dark">#121212</color>
+    <color name="text_primary_light">#FFFFFF</color>
+    <color name="text_secondary_light">#B3FFFFFF</color>
 </resources>

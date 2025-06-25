@@ -2,8 +2,10 @@ package com.example.prm_noodle_mobile.data.model;
 // mobile app model will contain data to interact and match with APIs endpoint
 // to create it, based on BE DTOs, or API required fields
 import java.util.Date;
+import android.os.Parcel;
+import android.os.Parcelable;
 
-public class Product {
+public class Product implements Parcelable {
     private int productId;
     private String productName;
     private String description;
@@ -94,4 +96,47 @@ public class Product {
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    // Parcelable implementation
+    protected Product(Parcel in) {
+        productId = in.readInt();
+        productName = in.readString();
+        description = in.readString();
+        basePrice = in.readDouble();
+        imageUrl = in.readString();
+        isAvailable = in.readByte() != 0;
+        spiceLevel = in.readString();
+        createdAt = new Date(in.readLong());
+        updatedAt = new Date(in.readLong());
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(productId);
+        dest.writeString(productName);
+        dest.writeString(description);
+        dest.writeDouble(basePrice);
+        dest.writeString(imageUrl);
+        dest.writeByte((byte) (isAvailable ? 1 : 0));
+        dest.writeString(spiceLevel);
+        dest.writeLong(createdAt != null ? createdAt.getTime() : 0);
+        dest.writeLong(updatedAt != null ? updatedAt.getTime() : 0);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<Product> CREATOR = new Creator<Product>() {
+        @Override
+        public Product createFromParcel(Parcel in) {
+            return new Product(in);
+        }
+
+        @Override
+        public Product[] newArray(int size) {
+            return new Product[size];
+        }
+    };
 }
