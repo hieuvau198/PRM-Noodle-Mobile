@@ -1,9 +1,15 @@
 // FILE: app/src/main/java/com/example/prm_noodle_mobile/customer/home/HomePresenter.java
 package com.example.prm_noodle_mobile.customer.home;
 
-import com.example.prm_noodle_mobile.data.mock.MockProductData;
+import com.example.prm_noodle_mobile.data.api.ApiClient;
+import com.example.prm_noodle_mobile.data.api.ProductApi;
 import com.example.prm_noodle_mobile.data.model.Product;
+
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class HomePresenter implements HomeContract.Presenter {
 
@@ -18,12 +24,27 @@ public class HomePresenter implements HomeContract.Presenter {
         if (view != null) {
             view.showLoading();
 
-            // Get featured products (first 3 items)
-            List<Product> allProducts = MockProductData.getMockProducts();
-            List<Product> featuredProducts = allProducts.subList(0, Math.min(3, allProducts.size()));
+            ProductApi productApi = ApiClient.getClient().create(ProductApi.class);
+            Call<List<Product>> call = productApi.getProducts();
+            call.enqueue(new Callback<List<Product>>() {
+                @Override
+                public void onResponse(Call<List<Product>> call, Response<List<Product>> response) {
+                    view.hideLoading();
+                    if (response.isSuccessful() && response.body() != null) {
+                        List<Product> allProducts = response.body();
+                        List<Product> featuredProducts = allProducts.subList(0, Math.min(3, allProducts.size()));
+                        view.showFeaturedProducts(featuredProducts);
+                    } else {
+                        view.showFeaturedProducts(new java.util.ArrayList<>());
+                    }
+                }
 
-            view.hideLoading();
-            view.showFeaturedProducts(featuredProducts);
+                @Override
+                public void onFailure(Call<List<Product>> call, Throwable t) {
+                    view.hideLoading();
+                    view.showFeaturedProducts(new java.util.ArrayList<>());
+                }
+            });
         }
     }
 

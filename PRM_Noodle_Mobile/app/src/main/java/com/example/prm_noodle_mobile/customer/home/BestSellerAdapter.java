@@ -9,9 +9,10 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.prm_noodle_mobile.R;
-import com.example.prm_noodle_mobile.data.model.Product;
 import com.example.prm_noodle_mobile.customer.productdetail.ProductDetailActivity;
+import com.example.prm_noodle_mobile.data.model.Product;
 import com.squareup.picasso.Picasso;
 
 import java.text.NumberFormat;
@@ -69,6 +70,11 @@ public class BestSellerAdapter extends RecyclerView.Adapter<BestSellerAdapter.Be
     @Override
     public int getItemCount() {
         return products.size();
+    }
+
+    public void setProducts(List<Product> products) {
+        this.products.clear();
+        this.products.addAll(products);
     }
 
     static class BestSellerViewHolder extends RecyclerView.ViewHolder {

@@ -1,7 +1,6 @@
 package com.example.prm_noodle_mobile.data.model;
 // mobile app model will contain data to interact and match with APIs endpoint
 // to create it, based on BE DTOs, or API required fields
-import java.util.Date;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -9,18 +8,18 @@ public class Product implements Parcelable {
     private int productId;
     private String productName;
     private String description;
-    private double basePrice;
+    private int basePrice;
     private String imageUrl;
     private Boolean isAvailable;
     private String spiceLevel;
-    private Date createdAt;
-    private Date updatedAt;
+    private String createdAt;
+    private String updatedAt;
 
     public Product() {
         // Default constructor
     }
 
-    public Product(int productId, String productName, String description, double basePrice, String imageUrl, Boolean isAvailable, String spiceLevel, Date createdAt, Date updatedAt) {
+    public Product(int productId, String productName, String description, int basePrice, String imageUrl, Boolean isAvailable, String spiceLevel, String createdAt, String updatedAt) {
         this.productId = productId;
         this.productName = productName;
         this.description = description;
@@ -55,10 +54,10 @@ public class Product implements Parcelable {
         this.description = description;
     }
 
-    public double getBasePrice() {
+    public int getBasePrice() {
         return basePrice;
     }
-    public void setBasePrice(double basePrice) {
+    public void setBasePrice(int basePrice) {
         this.basePrice = basePrice;
     }
 
@@ -83,17 +82,17 @@ public class Product implements Parcelable {
         this.spiceLevel = spiceLevel;
     }
 
-    public Date getCreatedAt() {
+    public String getCreatedAt() {
         return createdAt;
     }
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
     }
 
-    public Date getUpdatedAt() {
+    public String getUpdatedAt() {
         return updatedAt;
     }
-    public void setUpdatedAt(Date updatedAt) {
+    public void setUpdatedAt(String updatedAt) {
         this.updatedAt = updatedAt;
     }
 
@@ -102,12 +101,12 @@ public class Product implements Parcelable {
         productId = in.readInt();
         productName = in.readString();
         description = in.readString();
-        basePrice = in.readDouble();
+        basePrice = in.readInt();
         imageUrl = in.readString();
         isAvailable = in.readByte() != 0;
         spiceLevel = in.readString();
-        createdAt = new Date(in.readLong());
-        updatedAt = new Date(in.readLong());
+        createdAt = in.readString();
+        updatedAt = in.readString();
     }
 
     @Override
@@ -115,12 +114,12 @@ public class Product implements Parcelable {
         dest.writeInt(productId);
         dest.writeString(productName);
         dest.writeString(description);
-        dest.writeDouble(basePrice);
+        dest.writeInt(basePrice);
         dest.writeString(imageUrl);
         dest.writeByte((byte) (isAvailable ? 1 : 0));
         dest.writeString(spiceLevel);
-        dest.writeLong(createdAt != null ? createdAt.getTime() : 0);
-        dest.writeLong(updatedAt != null ? updatedAt.getTime() : 0);
+        dest.writeString(createdAt);
+        dest.writeString(updatedAt);
     }
 
     @Override

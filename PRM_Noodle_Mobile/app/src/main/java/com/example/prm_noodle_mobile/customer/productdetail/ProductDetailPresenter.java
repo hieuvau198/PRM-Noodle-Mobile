@@ -1,8 +1,14 @@
 package com.example.prm_noodle_mobile.customer.productdetail;
 
-import com.example.prm_noodle_mobile.data.mock.MockProductData;
+import com.example.prm_noodle_mobile.data.api.ApiClient;
+import com.example.prm_noodle_mobile.data.api.ProductApi;
 import com.example.prm_noodle_mobile.data.model.Product;
+
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class ProductDetailPresenter implements ProductDetailContract.Presenter {
 
@@ -14,23 +20,38 @@ public class ProductDetailPresenter implements ProductDetailContract.Presenter {
 
     @Override
     public void loadProductDetails(int productId) {
-        if (view != null) {
-            view.showLoading();
+        view.showLoading();
 
-            List<Product> allProducts = MockProductData.getMockProducts();
-            Product product = allProducts.stream()
-                    .filter(p -> p.getProductId() == productId)
-                    .findFirst()
-                    .orElse(null);
-
-            if (product != null) {
+        ProductApi productApi = ApiClient.getClient().create(ProductApi.class);
+        Call<List<Product>> call = productApi.getProducts();
+        call.enqueue(new Callback<List<Product>>() {
+            @Override
+            public void onResponse(Call<List<Product>> call, Response<List<Product>> response) {
                 view.hideLoading();
-                view.showProductDetails(product);
-            } else {
-                view.hideLoading();
-                view.showError("Product not found");
+                if (response.isSuccessful() && response.body() != null) {
+                    Product product = null;
+                    for (Product p : response.body()) {
+                        if (p.getProductId() == productId) {
+                            product = p;
+                            break;
+                        }
+                    }
+                    if (product != null) {
+                        view.showProductDetails(product);
+                    } else {
+                        view.showError("Không tìm thấy sản phẩm");
+                    }
+                } else {
+                    view.showError("Không lấy được dữ liệu sản phẩm");
+                }
             }
-        }
+
+            @Override
+            public void onFailure(Call<List<Product>> call, Throwable t) {
+                view.hideLoading();
+                view.showError("Lỗi kết nối: " + t.getMessage());
+            }
+        });
     }
 
     @Override

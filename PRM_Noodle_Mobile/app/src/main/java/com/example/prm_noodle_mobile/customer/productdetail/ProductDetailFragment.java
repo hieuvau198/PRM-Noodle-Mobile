@@ -6,12 +6,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+
 import com.example.prm_noodle_mobile.R;
 import com.example.prm_noodle_mobile.data.model.Product;
-import com.example.prm_noodle_mobile.data.mock.MockProductData;
 
 public class ProductDetailFragment extends Fragment implements ProductDetailContract.View {
 
@@ -26,8 +27,9 @@ public class ProductDetailFragment extends Fragment implements ProductDetailCont
 
         initViews(view);
         presenter = new ProductDetailPresenter(this);
-        // Simulate loading product with ID 1
-        presenter.loadProductDetails(1);
+        // Lấy productId từ arguments nếu có, mặc định là 1
+        int productId = getArguments() != null ? getArguments().getInt("productId", 1) : 1;
+        presenter.loadProductDetails(productId);
 
         return view;
     }
@@ -44,9 +46,9 @@ public class ProductDetailFragment extends Fragment implements ProductDetailCont
     public void showProductDetails(Product product) {
         productName.setText(product.getProductName());
         productDescription.setText(product.getDescription());
-        productPrice.setText(String.format("%,d VND", (int)product.getBasePrice()));
+        productPrice.setText(String.format("%,d VND", product.getBasePrice()));
         spiceLevel.setText(product.getSpiceLevel());
-        // Placeholder for image loading
+        // TODO: Load ảnh thật bằng Picasso hoặc Glide
         productImage.setImageResource(R.drawable.ic_noodle_placeholder);
     }
 

@@ -4,8 +4,10 @@ import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.example.prm_noodle_mobile.R;
 import com.example.prm_noodle_mobile.data.model.Product;
 import com.squareup.picasso.Picasso;
@@ -31,7 +33,7 @@ public class ProductDetailActivity extends AppCompatActivity {
 
         name.setText(product.getProductName());
         desc.setText(product.getDescription());
-        price.setText(String.format("%,.0fđ", product.getBasePrice()));
+        price.setText(String.format("%,dđ", product.getBasePrice()));
         if (product.getImageUrl() != null && !product.getImageUrl().isEmpty()) {
             Picasso.get().load(product.getImageUrl()).placeholder(R.drawable.placeholder_noodle_bowl).into(image);
         } else {
