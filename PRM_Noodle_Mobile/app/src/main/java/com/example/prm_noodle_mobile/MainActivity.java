@@ -10,6 +10,7 @@ import com.example.prm_noodle_mobile.customer.product.ProductFragment;
 import com.example.prm_noodle_mobile.customer.productdetail.ProductDetailFragment;
 import com.example.prm_noodle_mobile.customer.cart.CartFragment;
 import com.example.prm_noodle_mobile.customer.orderconfirm.OrderConfirmFragment;
+import com.example.prm_noodle_mobile.customer.combo.ComboFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
@@ -34,6 +35,8 @@ public class MainActivity extends AppCompatActivity {
 
             if (itemId == R.id.nav_home) {
                 selectedFragment = new HomeFragment();
+            } else if (itemId == R.id.nav_combo) {
+                selectedFragment = new ComboFragment();
             } else if (itemId == R.id.nav_product) {
                 selectedFragment = new ProductFragment();
             } else if (itemId == R.id.nav_cart) {
