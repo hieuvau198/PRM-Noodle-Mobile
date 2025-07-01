@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">PRM_Noodle_Mobile</string>
     <string name="title_home">Home</string>
-    <string name="title_product_detail">Product Detail</string>
+    <string name="title_product">Products</string>
     <string name="title_cart">Cart</string>
     <string name="title_order_confirm">Order Confirm</string>
 </resources>

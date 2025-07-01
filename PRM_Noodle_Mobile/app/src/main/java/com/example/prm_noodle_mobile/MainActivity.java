@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import com.example.prm_noodle_mobile.customer.home.HomeFragment;
+import com.example.prm_noodle_mobile.customer.product.ProductFragment;
 import com.example.prm_noodle_mobile.customer.productdetail.ProductDetailFragment;
 import com.example.prm_noodle_mobile.customer.cart.CartFragment;
 import com.example.prm_noodle_mobile.customer.orderconfirm.OrderConfirmFragment;
@@ -33,8 +34,8 @@ public class MainActivity extends AppCompatActivity {
 
             if (itemId == R.id.nav_home) {
                 selectedFragment = new HomeFragment();
-            } else if (itemId == R.id.nav_product_detail) {
-                selectedFragment = new ProductDetailFragment();
+            } else if (itemId == R.id.nav_product) {
+                selectedFragment = new ProductFragment();
             } else if (itemId == R.id.nav_cart) {
                 selectedFragment = new CartFragment();
             } else if (itemId == R.id.nav_order_confirm) {

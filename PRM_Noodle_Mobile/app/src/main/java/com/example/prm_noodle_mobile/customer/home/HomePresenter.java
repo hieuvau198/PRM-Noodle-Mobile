@@ -32,7 +32,7 @@ public class HomePresenter implements HomeContract.Presenter {
                     view.hideLoading();
                     if (response.isSuccessful() && response.body() != null) {
                         List<Product> allProducts = response.body();
-                        List<Product> featuredProducts = allProducts.subList(0, Math.min(3, allProducts.size()));
+                        List<Product> featuredProducts = allProducts.subList(0, Math.min(10, allProducts.size()));
                         view.showFeaturedProducts(featuredProducts);
                     } else {
                         view.showFeaturedProducts(new java.util.ArrayList<>());
