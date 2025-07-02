@@ -48,8 +48,6 @@ public class MainActivity extends AppCompatActivity {
                 selectedFragment = new ComboFragment();
             } else if (itemId == R.id.nav_product) {
                 selectedFragment = new ProductFragment();
-            } else if (itemId == R.id.nav_cart) {
-                selectedFragment = new CartFragment();
             } else if (itemId == R.id.nav_order_confirm) {
                 selectedFragment = new OrderConfirmFragment();
             }
