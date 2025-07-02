@@ -3,7 +3,7 @@ package com.example.prm_noodle_mobile.customer.orderconfirm;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
+import android.widget.Button;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -32,11 +32,6 @@ public class ToppingAdapter extends RecyclerView.Adapter<ToppingAdapter.ViewHold
         Topping topping = toppings.get(position);
         holder.toppingName.setText(topping.getToppingName());
         holder.toppingPrice.setText("+" + topping.getPrice() + "đ");
-        holder.checkbox.setOnCheckedChangeListener(null);
-        holder.checkbox.setChecked(topping.isAvailable());
-        holder.checkbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (listener != null) listener.onToppingChecked(topping, isChecked);
-        });
     }
 
     @Override
@@ -49,11 +44,9 @@ public class ToppingAdapter extends RecyclerView.Adapter<ToppingAdapter.ViewHold
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        CheckBox checkbox;
         TextView toppingName, toppingPrice;
         ViewHolder(@NonNull View itemView) {
             super(itemView);
-            checkbox = itemView.findViewById(R.id.checkbox_topping);
             toppingName = itemView.findViewById(R.id.topping_name);
             toppingPrice = itemView.findViewById(R.id.topping_price);
         }

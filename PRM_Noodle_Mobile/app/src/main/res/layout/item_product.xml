@@ -104,6 +104,13 @@
                         android:layout_marginLeft="4dp"/>
                 </LinearLayout>
             </LinearLayout>
+            <!-- Thêm topping_container để hiển thị topping đã chọn -->
+            <LinearLayout
+                android:id="@+id/topping_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="4dp"/>
         </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

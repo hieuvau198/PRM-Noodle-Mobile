@@ -6,4 +6,11 @@
     </style>
 
     <style name="Theme.PRM_Noodle_Mobile" parent="Base.Theme.PRM_Noodle_Mobile" />
+    
+    <style name="Theme.PRM_Noodle_Mobile.NoActionBar" parent="Base.Theme.PRM_Noodle_Mobile">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
 </resources>

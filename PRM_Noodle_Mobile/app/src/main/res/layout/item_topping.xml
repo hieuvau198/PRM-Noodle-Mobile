@@ -3,13 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:padding="12dp"
-    android:gravity="center_vertical">
-
-    <CheckBox
-        android:id="@+id/checkbox_topping"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+    android:gravity="center_vertical"
+    android:padding="8dp">
 
     <TextView
         android:id="@+id/topping_name"
@@ -17,15 +12,34 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:text="Topping Name"
-        android:textSize="16sp"
-        android:layout_marginStart="12dp" />
+        android:textSize="15sp" />
 
     <TextView
         android:id="@+id/topping_price"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="+5.000đ"
+        android:text="5.000đ"
         android:textColor="@color/primary"
-        android:textSize="15sp"
+        android:textSize="14sp"
         android:layout_marginStart="8dp" />
+
+    <Button
+        android:id="@+id/btn_minus_topping"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:text="-" />
+
+    <TextView
+        android:id="@+id/topping_quantity"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:gravity="center"
+        android:text="0"
+        android:textSize="15sp" />
+
+    <Button
+        android:id="@+id/btn_plus_topping"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:text="+" />
 </LinearLayout> 
