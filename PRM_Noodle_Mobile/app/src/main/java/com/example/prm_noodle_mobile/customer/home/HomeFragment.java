@@ -4,6 +4,11 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
+import android.widget.ImageButton;
+import android.content.SharedPreferences;
+import android.content.Intent;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.prm_noodle_mobile.R;
 import com.example.prm_noodle_mobile.data.model.Product;
+import com.example.prm_noodle_mobile.auth.LoginActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,11 +29,32 @@ public class HomeFragment extends Fragment implements HomeContract.View {
     private RecyclerView categoryRecycler, bestSellerRecycler;
     private BestSellerAdapter bestSellerAdapter;
     private HomePresenter presenter;
+    private TextView tvUsernameHome;
+    private ImageButton btnLogoutHome;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
+
+        // Header user
+        tvUsernameHome = view.findViewById(R.id.tv_username_home);
+        btnLogoutHome = view.findViewById(R.id.btn_logout_home);
+        // Lấy tên user từ SharedPreferences nếu có
+        SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("LoginPrefs", getContext().MODE_PRIVATE);
+        String userEmail = sharedPreferences.getString("userEmail", "User");
+        tvUsernameHome.setText("Hi, " + userEmail);
+        // Xử lý logout
+        btnLogoutHome.setOnClickListener(v -> {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.clear();
+            editor.apply();
+            Toast.makeText(getContext(), "Đăng xuất thành công!", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(getActivity(), LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            requireActivity().finishAffinity();
+        });
 
         // Danh mục
         categoryRecycler = view.findViewById(R.id.recycler_view_categories);
