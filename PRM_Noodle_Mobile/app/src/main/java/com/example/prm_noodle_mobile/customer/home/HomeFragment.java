@@ -9,6 +9,16 @@ import android.widget.ImageButton;
 import android.content.SharedPreferences;
 import android.content.Intent;
 import android.widget.Toast;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import android.app.AlertDialog;
+import android.widget.EditText;
+import android.os.AsyncTask;
+import org.json.JSONObject;
+import java.io.OutputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,9 +30,21 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.prm_noodle_mobile.R;
 import com.example.prm_noodle_mobile.data.model.Product;
 import com.example.prm_noodle_mobile.auth.LoginActivity;
+import com.example.prm_noodle_mobile.data.api.ChatbotApi;
+import com.example.prm_noodle_mobile.data.api.ApiClient;
+import com.example.prm_noodle_mobile.data.model.ChatMessage;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import java.util.ArrayList;
 import java.util.List;
+import android.app.Dialog;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.EditText;
+import java.util.UUID;
 
 public class HomeFragment extends Fragment implements HomeContract.View {
 
@@ -31,6 +53,7 @@ public class HomeFragment extends Fragment implements HomeContract.View {
     private HomePresenter presenter;
     private TextView tvUsernameHome;
     private ImageButton btnLogoutHome;
+    private FloatingActionButton fabChatbot;
 
     @Nullable
     @Override
@@ -70,6 +93,9 @@ public class HomeFragment extends Fragment implements HomeContract.View {
         presenter = new HomePresenter(this);
         presenter.loadFeaturedProducts();
 
+        fabChatbot = view.findViewById(R.id.fab_chatbot);
+        fabChatbot.setOnClickListener(v -> showChatbotDialog());
+
         return view;
     }
 
@@ -106,5 +132,70 @@ public class HomeFragment extends Fragment implements HomeContract.View {
         list.add(new CategoryAdapter.Category("Bánh", R.drawable.banh_takoyaki));
         list.add(new CategoryAdapter.Category("Nước", R.drawable.ic_tra_chanh));
         return list;
+    }
+
+    private String getSessionId() {
+        SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("LoginPrefs", getContext().MODE_PRIVATE);
+        String email = sharedPreferences.getString("userEmail", null);
+        if (email != null && !email.isEmpty()) return email;
+        String uuid = sharedPreferences.getString("chatbotSessionId", null);
+        if (uuid == null) {
+            uuid = UUID.randomUUID().toString();
+            sharedPreferences.edit().putString("chatbotSessionId", uuid).apply();
+        }
+        return uuid;
+    }
+
+    private void showChatbotDialog() {
+        Dialog dialog = new Dialog(getContext());
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.dialog_chatbot);
+        Window window = dialog.getWindow();
+        if (window != null) {
+            window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
+        }
+        RecyclerView rv = dialog.findViewById(R.id.rv_chat_messages);
+        EditText etInput = dialog.findViewById(R.id.et_chat_input);
+        Button btnSend = dialog.findViewById(R.id.btn_send_chat);
+        ArrayList<ChatMessageLocal> chatList = new ArrayList<>();
+        ChatbotAdapter adapter = new ChatbotAdapter(chatList);
+        rv.setLayoutManager(new LinearLayoutManager(getContext()));
+        rv.setAdapter(adapter);
+        // Lời chào bot
+        adapter.addMessage(new ChatMessageLocal("Xin chào! Tôi là trợ lý ảo của nhà hàng, chuyên giúp bạn chọn món.", true));
+        btnSend.setOnClickListener(v -> {
+            String msg = etInput.getText().toString().trim();
+            if (msg.isEmpty()) return;
+            adapter.addMessage(new ChatMessageLocal(msg, false));
+            rv.scrollToPosition(adapter.getItemCount() - 1);
+            etInput.setText("");
+            // Gửi API
+            ChatbotApi api = ApiClient.getClient().create(ChatbotApi.class);
+            String sessionId = getSessionId();
+            ChatMessage chatMessage = new ChatMessage(msg, sessionId);
+            api.sendMessage(chatMessage).enqueue(new retrofit2.Callback<Object>() {
+                @Override
+                public void onResponse(Call<Object> call, retrofit2.Response<Object> response) {
+                    String resp = "Không nhận được phản hồi từ chatbot";
+                    if (response.isSuccessful() && response.body() != null) {
+                        Object body = response.body();
+                        if (body instanceof java.util.Map) {
+                            Object r = ((java.util.Map<?,?>)body).get("response");
+                            if (r != null) resp = r.toString();
+                        } else {
+                            resp = body.toString();
+                        }
+                    }
+                    adapter.addMessage(new ChatMessageLocal(resp, true));
+                    rv.scrollToPosition(adapter.getItemCount() - 1);
+                }
+                @Override
+                public void onFailure(Call<Object> call, Throwable t) {
+                    adapter.addMessage(new ChatMessageLocal("Lỗi: " + t.getMessage(), true));
+                    rv.scrollToPosition(adapter.getItemCount() - 1);
+                }
+            });
+        });
+        dialog.show();
     }
 }

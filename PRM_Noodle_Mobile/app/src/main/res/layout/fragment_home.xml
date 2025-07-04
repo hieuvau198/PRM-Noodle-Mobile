@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -7,144 +7,162 @@
     android:background="@color/background_light"
     tools:context=".customer.home.HomeFragment">
 
-    <LinearLayout
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingBottom="16dp">
+        android:layout_height="match_parent"
+        android:background="@color/background_light">
 
         <LinearLayout
-            android:id="@+id/header_user"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:paddingTop="12dp"
-            android:paddingBottom="8dp"
-            android:background="@android:color/transparent"
-            android:layout_marginTop="32dp">
-
-            <TextView
-                android:id="@+id/tv_username_home"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Hi, User"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@color/primary"/>
+            android:orientation="vertical"
+            android:paddingBottom="16dp">
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:id="@+id/header_user"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:background="@drawable/bg_logout_button"
-                android:padding="0dp"
-                android:layout_marginStart="8dp">
-                <ImageButton
-                    android:id="@+id/btn_logout_home"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:background="@android:color/transparent"
-                    android:src="@drawable/ic_logout"
-                    android:contentDescription="Logout"
-                    android:padding="12dp"
-                    android:tint="@color/white"
-                    android:focusable="true"
-                    android:clickable="true"
-                    android:foreground="?attr/selectableItemBackgroundBorderless"/>
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingTop="12dp"
+                android:paddingBottom="8dp"
+                android:background="@android:color/transparent"
+                android:layout_marginTop="32dp">
+
                 <TextView
-                    android:id="@+id/tv_logout_label"
+                    android:id="@+id/tv_username_home"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Hi, User"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/primary"/>
+
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Đăng xuất"
-                    android:textColor="@color/white"
-                    android:textStyle="bold"
-                    android:textSize="16sp"
-                    android:layout_marginEnd="12dp"
-                    android:layout_gravity="center_vertical"/>
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/bg_logout_button"
+                    android:padding="0dp"
+                    android:layout_marginStart="8dp">
+                    <ImageButton
+                        android:id="@+id/btn_logout_home"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="@android:color/transparent"
+                        android:src="@drawable/ic_logout"
+                        android:contentDescription="Logout"
+                        android:padding="12dp"
+                        android:tint="@color/white"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:foreground="?attr/selectableItemBackgroundBorderless"/>
+                    <TextView
+                        android:id="@+id/tv_logout_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Đăng xuất"
+                        android:textColor="@color/white"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:layout_marginEnd="12dp"
+                        android:layout_gravity="center_vertical"/>
+                </LinearLayout>
             </LinearLayout>
-        </LinearLayout>
 
-        <!-- Banner -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="180dp"
-            app:cardCornerRadius="18dp"
-            app:cardElevation="6dp"
-            android:layout_margin="16dp"
-            app:cardBackgroundColor="@color/primary_light">
-            <RelativeLayout
+            <!-- Banner -->
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
-                <ImageView
+                android:layout_height="180dp"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="6dp"
+                android:layout_margin="16dp"
+                app:cardBackgroundColor="@color/primary_light">
+                <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:src="@drawable/placeholder_noodle_bowl"
-                    android:scaleType="centerCrop"
-                    android:alpha="0.18"/>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Khám phá ẩm thực Hàn Quốc\nMì Cay Seoul"
-                    android:textColor="@color/primary"
-                    android:textSize="24sp"
-                    android:textStyle="bold"
-                    android:layout_centerInParent="true"
-                    android:background="#CCFFFFFF"
-                    android:padding="12dp"
-                    android:elevation="2dp"
-                    android:gravity="center"/>
-            </RelativeLayout>
-        </androidx.cardview.widget.CardView>
+                    android:layout_height="match_parent">
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/placeholder_noodle_bowl"
+                        android:scaleType="centerCrop"
+                        android:alpha="0.18"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Khám phá ẩm thực Hàn Quốc\nMì Cay Seoul"
+                        android:textColor="@color/primary"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:layout_centerInParent="true"
+                        android:background="#CCFFFFFF"
+                        android:padding="12dp"
+                        android:elevation="2dp"
+                        android:gravity="center"/>
+                </RelativeLayout>
+            </androidx.cardview.widget.CardView>
 
-        <!-- Danh mục -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Danh mục"
-            android:textColor="@color/text_primary"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:layout_marginStart="16dp"
-            android:layout_marginBottom="8dp"/>
+            <!-- Danh mục -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Danh mục"
+                android:textColor="@color/text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginStart="16dp"
+                android:layout_marginBottom="8dp"/>
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler_view_categories"
-            android:layout_width="match_parent"
-            android:layout_height="177dp"
-            android:clipToPadding="false"
-            android:overScrollMode="never"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            tools:itemCount="8"
-            tools:listitem="@layout/item_category" />
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_view_categories"
+                android:layout_width="match_parent"
+                android:layout_height="177dp"
+                android:clipToPadding="false"
+                android:overScrollMode="never"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:itemCount="8"
+                tools:listitem="@layout/item_category" />
 
-        <!-- Sản phẩm nổi bật -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Bán chạy nhất"
-            android:textColor="@color/text_primary"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="8dp"/>
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler_view_best_sellers"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
-            android:clipToPadding="false"
-            tools:listitem="@layout/item_best_seller_product"
-            tools:itemCount="4"
-            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-            app:spanCount="2"/>
-    </LinearLayout>
-</androidx.core.widget.NestedScrollView>
+            <!-- Sản phẩm nổi bật -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bán chạy nhất"
+                android:textColor="@color/text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="8dp"/>
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_view_best_sellers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:clipToPadding="false"
+                tools:listitem="@layout/item_best_seller_product"
+                tools:itemCount="4"
+                app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+                app:spanCount="2"/>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_chatbot"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="24dp"
+        android:src="@android:drawable/ic_dialog_email"
+        android:contentDescription="Chatbot"
+        app:backgroundTint="@color/primary"
+        app:tint="@color/white" />
+
+</FrameLayout>
