@@ -44,8 +44,8 @@ public class MainActivity extends AppCompatActivity {
 
             if (itemId == R.id.nav_home) {
                 selectedFragment = new HomeFragment();
-            } else if (itemId == R.id.nav_combo) {
-                selectedFragment = new ComboFragment();
+//            } else if (itemId == R.id.nav_combo) {
+//                selectedFragment = new ComboFragment();
             } else if (itemId == R.id.nav_product) {
                 selectedFragment = new ProductFragment();
             } else if (itemId == R.id.nav_order_confirm) {

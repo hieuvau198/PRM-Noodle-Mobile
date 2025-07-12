@@ -3,6 +3,7 @@ package com.example.prm_noodle_mobile.customer.combo;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -10,10 +11,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.prm_noodle_mobile.R;
 import com.example.prm_noodle_mobile.data.model.Combo;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ComboListAdapter extends RecyclerView.Adapter<ComboListAdapter.ViewHolder> {
     private List<Combo> combos;
+    private List<Combo> selectedCombos = new ArrayList<>();
     private OnComboClickListener listener;
 
     public ComboListAdapter(List<Combo> combos) {
@@ -22,6 +25,7 @@ public class ComboListAdapter extends RecyclerView.Adapter<ComboListAdapter.View
 
     public void setCombos(List<Combo> combos) {
         this.combos = combos;
+        notifyDataSetChanged();
     }
 
     public void setOnComboClickListener(OnComboClickListener listener) {
@@ -43,22 +47,45 @@ public class ComboListAdapter extends RecyclerView.Adapter<ComboListAdapter.View
 
     @Override
     public int getItemCount() {
-        return combos.size();
+        return combos != null ? combos.size() : 0;
+    }
+
+    public List<Combo> getSelectedCombos() {
+        return new ArrayList<>(selectedCombos);
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
         TextView name, price, description;
         ImageView image;
+        CheckBox checkBox;
+
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             name = itemView.findViewById(R.id.combo_name);
             price = itemView.findViewById(R.id.combo_price);
             description = itemView.findViewById(R.id.combo_description);
             image = itemView.findViewById(R.id.combo_image);
+            checkBox = itemView.findViewById(R.id.combo_checkbox);
+
+            checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                int position = getAdapterPosition();
+                if (position != RecyclerView.NO_POSITION) {
+                    Combo combo = combos.get(position);
+                    if (isChecked) {
+                        if (!selectedCombos.contains(combo)) {
+                            selectedCombos.add(combo);
+                        }
+                    } else {
+                        selectedCombos.remove(combo);
+                    }
+                }
+            });
+
             itemView.setOnClickListener(v -> {
                 if (listener != null) listener.onComboClick(combos.get(getAdapterPosition()));
             });
         }
+
         void bind(Combo combo) {
             name.setText(combo.getComboName());
             price.setText(String.format("%,d VND", combo.getPrice()));
@@ -71,10 +98,11 @@ public class ComboListAdapter extends RecyclerView.Adapter<ComboListAdapter.View
             } else {
                 image.setImageResource(R.drawable.ic_noodle_placeholder);
             }
+            checkBox.setChecked(selectedCombos.contains(combo));
         }
     }
 
     public interface OnComboClickListener {
         void onComboClick(Combo combo);
     }
-} 
+}
