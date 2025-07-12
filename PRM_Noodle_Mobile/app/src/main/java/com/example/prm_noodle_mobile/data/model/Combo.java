@@ -2,11 +2,13 @@ package com.example.prm_noodle_mobile.data.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import com.google.gson.annotations.SerializedName;
 
 public class Combo implements Parcelable {
     private int comboId;
     private String comboName;
     private String description;
+    @SerializedName("comboPrice")
     private int price;
     private String imageUrl;
     private Boolean isAvailable;

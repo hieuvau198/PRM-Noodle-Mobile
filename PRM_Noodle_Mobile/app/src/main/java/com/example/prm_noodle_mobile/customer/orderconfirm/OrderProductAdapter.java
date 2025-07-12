@@ -38,9 +38,10 @@ public class OrderProductAdapter extends RecyclerView.Adapter<OrderProductAdapte
     }
 
     // Constructor cho OrderConfirmFragment (chỉ hiển thị các sản phẩm đã thêm vào giỏ hàng)
-    public OrderProductAdapter(List<OrderItem> orderItemList, List<Product> productList) {
+    public OrderProductAdapter(List<OrderItem> orderItemList, List<Product> productList, List<Topping> toppingList) {
         this.orderItemList = orderItemList;
         this.productListForOrderItems = productList;
+        this.toppingList = toppingList;
     }
 
     @NonNull
@@ -81,8 +82,9 @@ public class OrderProductAdapter extends RecyclerView.Adapter<OrderProductAdapte
             holder.toppingContainer.removeAllViews();
             if (item.getToppings() != null && !item.getToppings().isEmpty()) {
                 for (ToppingOrder toppingOrder : item.getToppings()) {
+                    String toppingName = getToppingNameById(toppingOrder.getToppingId());
                     TextView tv = new TextView(holder.toppingContainer.getContext());
-                    tv.setText("+ Topping ID: " + toppingOrder.getToppingId() + " x" + toppingOrder.getQuantity());
+                    tv.setText("+ " + toppingName + " x" + toppingOrder.getQuantity());
                     holder.toppingContainer.addView(tv);
                 }
             }
@@ -147,6 +149,17 @@ public class OrderProductAdapter extends RecyclerView.Adapter<OrderProductAdapte
             dialog.dismiss();
         });
         dialog.show();
+    }
+
+    private String getToppingNameById(int toppingId) {
+        if (toppingList != null) {
+            for (Topping topping : toppingList) {
+                if (topping.getToppingId() == toppingId) {
+                    return topping.getToppingName();
+                }
+            }
+        }
+        return "Topping ID: " + toppingId;
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {

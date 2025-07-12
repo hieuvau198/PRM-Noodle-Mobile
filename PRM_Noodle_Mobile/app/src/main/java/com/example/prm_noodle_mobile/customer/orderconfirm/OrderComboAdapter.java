@@ -8,13 +8,16 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.prm_noodle_mobile.R;
 import com.example.prm_noodle_mobile.data.model.OrderCombo;
+import com.example.prm_noodle_mobile.data.model.Combo;
 import java.util.List;
 
 public class OrderComboAdapter extends RecyclerView.Adapter<OrderComboAdapter.ViewHolder> {
     private List<OrderCombo> combos;
+    private List<Combo> comboDetailList;
 
-    public OrderComboAdapter(List<OrderCombo> combos) {
+    public OrderComboAdapter(List<OrderCombo> combos, List<Combo> comboDetailList) {
         this.combos = combos;
+        this.comboDetailList = comboDetailList;
     }
 
     @NonNull
@@ -26,15 +29,33 @@ public class OrderComboAdapter extends RecyclerView.Adapter<OrderComboAdapter.Vi
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        OrderCombo combo = combos.get(position);
-        holder.comboName.setText("Combo " + combo.getComboId());
-        holder.comboQuantity.setText("x" + combo.getQuantity());
-        holder.comboPrice.setText("..."); // Cập nhật giá nếu có
+        OrderCombo orderCombo = combos.get(position);
+        Combo combo = getComboById(orderCombo.getComboId());
+        if (combo != null) {
+            holder.comboName.setText(combo.getComboName());
+            holder.comboQuantity.setText("x" + orderCombo.getQuantity());
+            holder.comboPrice.setText(String.format("%,d VND", combo.getPrice()));
+        } else {
+            holder.comboName.setText("Combo " + orderCombo.getComboId());
+            holder.comboQuantity.setText("x" + orderCombo.getQuantity());
+            holder.comboPrice.setText("");
+        }
     }
 
     @Override
     public int getItemCount() {
         return combos.size();
+    }
+
+    private Combo getComboById(int comboId) {
+        if (comboDetailList != null) {
+            for (Combo combo : comboDetailList) {
+                if (combo.getComboId() == comboId) {
+                    return combo;
+                }
+            }
+        }
+        return null;
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {

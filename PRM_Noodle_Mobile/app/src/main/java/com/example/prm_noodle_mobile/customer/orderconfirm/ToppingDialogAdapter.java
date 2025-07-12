@@ -36,17 +36,28 @@ public class ToppingDialogAdapter extends RecyclerView.Adapter<ToppingDialogAdap
         holder.toppingName.setText(topping.getToppingName());
         holder.toppingPrice.setText(String.format("%,dđ", topping.getPrice()));
         holder.toppingQuantity.setText(String.valueOf(toppingQuantities[position]));
+
+        // Set icon for minus and plus if drawable exists
+        holder.btnMinus.setText("");
+        holder.btnPlus.setText("");
+        holder.btnMinus.setBackgroundResource(R.drawable.icon_minus);
+        holder.btnPlus.setBackgroundResource(R.drawable.icon_plus);
+
         holder.btnMinus.setOnClickListener(v -> {
             if (toppingQuantities[position] > 0) {
                 toppingQuantities[position]--;
                 holder.toppingQuantity.setText(String.valueOf(toppingQuantities[position]));
-                if (toppingQuantities[position] == 0) selectedToppings.remove(topping);
+                if (toppingQuantities[position] == 0) {
+                    selectedToppings.remove(topping);
+                }
             }
         });
         holder.btnPlus.setOnClickListener(v -> {
             toppingQuantities[position]++;
             holder.toppingQuantity.setText(String.valueOf(toppingQuantities[position]));
-            if (!selectedToppings.contains(topping)) selectedToppings.add(topping);
+            if (!selectedToppings.contains(topping)) {
+                selectedToppings.add(topping);
+            }
         });
     }
 
