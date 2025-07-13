@@ -1,0 +1,42 @@
+<resources>
+    <string name="app_name">PRM_V3</string>
+    <string name="title_cooking">Đang chuẩn bị</string>
+    <string name="title_orders">Đơn hàng</string>
+    <string name="title_create">Đặt đơn</string>
+    <string name="title_payment">Thanh toán</string>
+    <string name="title_logout">Đăng xuất</string>
+    <string name="title_profile">Hồ sơ</string>
+    <!-- Order Item Strings -->
+    <string name="order_title">Đơn hàng</string>
+    <string name="order_status_confirmed">Đã xác nhận</string>
+    <string name="customer_name">Khách hàng: %s</string>
+    <string name="order_date">Ngày đặt: %s</string>
+
+    <!-- Order Details -->
+    <string name="total_amount_label">Tổng tiền</string>
+    <string name="money">125.000₫</string>
+    <string name="payment_method_label">Thanh toán</string>
+    <string name="payment_method_ewallet">Ví điện tử</string>
+    <string name="item_count_label">Số món</string>
+    <string name="item_count_format">%d món</string>
+    <string name="payment_status_label">Trạng thái TT</string>
+    <string name="payment_status_paid">Đã thanh toán</string>
+
+    <!-- Buttons -->
+    <string name="btn_confirm_order">Xác nhận</string>
+    <string name="btn_cancel_order">Hủy đơn</string>
+
+    <!-- Tab Names -->
+    <string name="tab_all">Tất cả</string>
+    <string name="tab_pending">Chờ xác nhận</string>
+    <string name="tab_confirmed">Đã xác nhận</string>
+    <string name="tab_preparing">Đang chuẩn bị</string>
+    <string name="tab_delivered">Đang vận chuyển</string>
+    <string name="tab_completed">Hoàn thành</string>
+    <string name="tab_cancelled">Đã hủy</string>
+
+    <!-- Messages -->
+    <string name="no_orders_found">Không có đơn hàng nào</string>
+    <string name="loading">Đang tải...</string>
+    <string name="error_loading_orders">Lỗi khi tải danh sách đơn hàng</string>
+</resources>
