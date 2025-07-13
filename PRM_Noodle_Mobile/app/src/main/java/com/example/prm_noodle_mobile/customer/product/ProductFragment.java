@@ -40,7 +40,7 @@ public class ProductFragment extends Fragment {
     }
 
     private void loadProducts() {
-        ProductApi api = ApiClient.getClient().create(ProductApi.class);
+        ProductApi api = ApiClient.getClient(getContext()).create(ProductApi.class);
         api.getProducts().enqueue(new Callback<List<Product>>() {
             @Override
             public void onResponse(Call<List<Product>> call, Response<List<Product>> response) {

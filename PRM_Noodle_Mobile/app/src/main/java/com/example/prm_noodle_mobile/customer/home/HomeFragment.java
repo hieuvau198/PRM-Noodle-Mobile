@@ -90,7 +90,7 @@ public class HomeFragment extends Fragment implements HomeContract.View {
         bestSellerAdapter = new BestSellerAdapter(new ArrayList<>());
         bestSellerRecycler.setAdapter(bestSellerAdapter);
 
-        presenter = new HomePresenter(this);
+        presenter = new HomePresenter(this, getContext());
         presenter.loadFeaturedProducts();
 
         fabChatbot = view.findViewById(R.id.fab_chatbot);
@@ -170,7 +170,7 @@ public class HomeFragment extends Fragment implements HomeContract.View {
             rv.scrollToPosition(adapter.getItemCount() - 1);
             etInput.setText("");
             // Gửi API
-            ChatbotApi api = ApiClient.getClient().create(ChatbotApi.class);
+            ChatbotApi api = ApiClient.getClient(getContext()).create(ChatbotApi.class);
             String sessionId = getSessionId();
             ChatMessage chatMessage = new ChatMessage(msg, sessionId);
             api.sendMessage(chatMessage).enqueue(new retrofit2.Callback<Object>() {

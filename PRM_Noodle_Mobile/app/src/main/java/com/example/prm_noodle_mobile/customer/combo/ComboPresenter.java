@@ -19,7 +19,7 @@ public class ComboPresenter implements ComboContract.Presenter {
     public void loadCombos() {
         if (view != null) {
             view.showLoading();
-            ComboApi comboApi = ApiClient.getClient().create(ComboApi.class);
+            ComboApi comboApi = ApiClient.getClient(((android.content.Context)view)).create(ComboApi.class);
             Call<List<Combo>> call = comboApi.getAvailableCombos();
             call.enqueue(new Callback<List<Combo>>() {
                 @Override

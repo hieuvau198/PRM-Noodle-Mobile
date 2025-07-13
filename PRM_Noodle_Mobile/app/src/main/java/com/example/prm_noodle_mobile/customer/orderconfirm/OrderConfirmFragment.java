@@ -88,7 +88,7 @@ public class OrderConfirmFragment extends Fragment {
     }
 
     private void loadProducts() {
-        ProductApi api = ApiClient.getClient().create(ProductApi.class);
+        ProductApi api = ApiClient.getClient(getContext()).create(ProductApi.class);
         api.getProducts().enqueue(new Callback<List<Product>>() {
             @Override
             public void onResponse(Call<List<Product>> call, Response<List<Product>> response) {
@@ -106,7 +106,7 @@ public class OrderConfirmFragment extends Fragment {
     }
 
     private void loadToppings() {
-        ToppingApi api = ApiClient.getClient().create(ToppingApi.class);
+        ToppingApi api = ApiClient.getClient(getContext()).create(ToppingApi.class);
         api.getAvailableToppings().enqueue(new Callback<List<Topping>>() {
             @Override
             public void onResponse(Call<List<Topping>> call, Response<List<Topping>> response) {
@@ -124,7 +124,7 @@ public class OrderConfirmFragment extends Fragment {
     }
 
     private void loadCombos() {
-        ComboApi api = ApiClient.getClient().create(ComboApi.class);
+        ComboApi api = ApiClient.getClient(getContext()).create(ComboApi.class);
         api.getAvailableCombos().enqueue(new Callback<List<Combo>>() {
             @Override
             public void onResponse(Call<List<Combo>> call, Response<List<Combo>> response) {
@@ -176,7 +176,7 @@ public class OrderConfirmFragment extends Fragment {
         // Tạo order với cấu trúc đúng như JSON yêu cầu
         Order order = new Order(userId, address, notes, paymentMethod, orderItems, orderCombos);
 
-        OrderApi api = ApiClient.getClient().create(OrderApi.class);
+        OrderApi api = ApiClient.getClient(getContext()).create(OrderApi.class);
         api.createOrder(order).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {

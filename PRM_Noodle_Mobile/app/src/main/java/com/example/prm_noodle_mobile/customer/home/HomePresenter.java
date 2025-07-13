@@ -10,13 +10,16 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import android.content.Context;
 
 public class HomePresenter implements HomeContract.Presenter {
 
     private HomeContract.View view;
+    private Context context;
 
-    public HomePresenter(HomeContract.View view) {
+    public HomePresenter(HomeContract.View view, Context context) {
         this.view = view;
+        this.context = context;
     }
 
     @Override
@@ -24,7 +27,7 @@ public class HomePresenter implements HomeContract.Presenter {
         if (view != null) {
             view.showLoading();
 
-            ProductApi productApi = ApiClient.getClient().create(ProductApi.class);
+            ProductApi productApi = ApiClient.getClient(context).create(ProductApi.class);
             Call<List<Product>> call = productApi.getProducts();
             call.enqueue(new Callback<List<Product>>() {
                 @Override

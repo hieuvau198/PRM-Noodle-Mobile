@@ -74,7 +74,7 @@ public class LoginActivity extends AppCompatActivity {
         btnLogin.setEnabled(false);
         btnLogin.setText("Đang đăng nhập...");
 
-        AuthApi authApi = ApiClient.getClient().create(AuthApi.class);
+        AuthApi authApi = ApiClient.getClient(this).create(AuthApi.class);
         UserLoginRequest request = new UserLoginRequest(email, password);
 
         authApi.login(request).enqueue(new Callback<UserResponse>() {

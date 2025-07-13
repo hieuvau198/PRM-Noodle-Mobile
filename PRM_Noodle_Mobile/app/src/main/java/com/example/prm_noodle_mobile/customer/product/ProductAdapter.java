@@ -96,7 +96,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
 
             // Bấm vào sản phẩm để mở dialog order
             itemView.setOnClickListener(v -> {
-                ToppingApi api = ApiClient.getClient().create(ToppingApi.class);
+                ToppingApi api = ApiClient.getClient(itemView.getContext()).create(ToppingApi.class);
                 api.getAvailableToppings().enqueue(new Callback<List<Topping>>() {
                     @Override
                     public void onResponse(Call<List<Topping>> call, Response<List<Topping>> response) {

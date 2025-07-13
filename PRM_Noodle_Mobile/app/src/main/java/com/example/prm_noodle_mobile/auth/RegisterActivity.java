@@ -30,7 +30,7 @@ public class RegisterActivity extends AppCompatActivity {
         setContentView(R.layout.activity_register);
 
         initViews();
-        authApi = ApiClient.getClient().create(AuthApi.class);
+        authApi = ApiClient.getClient(this).create(AuthApi.class);
 
         btnRegister.setOnClickListener(v -> registerUser());
     }

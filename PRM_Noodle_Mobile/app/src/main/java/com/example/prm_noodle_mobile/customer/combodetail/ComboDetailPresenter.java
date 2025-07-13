@@ -18,7 +18,7 @@ public class ComboDetailPresenter implements ComboDetailContract.Presenter {
     public void loadComboDetail(int comboId) {
         if (view != null) {
             view.showLoading();
-            ComboApi comboApi = ApiClient.getClient().create(ComboApi.class);
+            ComboApi comboApi = ApiClient.getClient(((android.content.Context)view)).create(ComboApi.class);
             Call<Combo> call = comboApi.getComboById(comboId);
             call.enqueue(new Callback<Combo>() {
                 @Override

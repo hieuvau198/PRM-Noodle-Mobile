@@ -9,6 +9,10 @@
 <!--        android:icon="@drawable/ic_menu_cart"-->
 <!--        android:title="Combo" />-->
     <item
+        android:id="@+id/nav_user_profile"
+        android:icon="@drawable/ic_user"
+        android:title="Tài khoản" />
+    <item
         android:id="@+id/nav_product"
         android:icon="@drawable/ic_product"
         android:title="@string/title_product" />

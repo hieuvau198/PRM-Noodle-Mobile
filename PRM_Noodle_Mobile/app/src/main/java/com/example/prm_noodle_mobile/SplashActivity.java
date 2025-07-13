@@ -12,6 +12,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.prm_noodle_mobile.auth.LoginActivity;
+import com.example.prm_noodle_mobile.utils.UserSessionManager;
 
 public class SplashActivity extends AppCompatActivity {
 
@@ -24,8 +25,8 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        // Initialize SharedPreferences
-        sharedPreferences = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
+        // Không cần tự khởi tạo sharedPreferences nữa
+        // sharedPreferences = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
 
         initViews();
         startAnimations();
@@ -50,7 +51,8 @@ public class SplashActivity extends AppCompatActivity {
     }
 
     private void checkLoginStatus() {
-        boolean isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false);
+        UserSessionManager sessionManager = new UserSessionManager(this);
+        boolean isLoggedIn = sessionManager.isLoggedIn();
         
         Intent intent;
         if (isLoggedIn) {

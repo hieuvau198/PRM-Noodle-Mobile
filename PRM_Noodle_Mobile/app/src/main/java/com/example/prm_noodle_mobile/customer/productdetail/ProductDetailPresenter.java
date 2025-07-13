@@ -22,7 +22,7 @@ public class ProductDetailPresenter implements ProductDetailContract.Presenter {
     public void loadProductDetails(int productId) {
         view.showLoading();
 
-        ProductApi productApi = ApiClient.getClient().create(ProductApi.class);
+        ProductApi productApi = ApiClient.getClient(((android.content.Context)view)).create(ProductApi.class);
         Call<List<Product>> call = productApi.getProducts();
         call.enqueue(new Callback<List<Product>>() {
             @Override

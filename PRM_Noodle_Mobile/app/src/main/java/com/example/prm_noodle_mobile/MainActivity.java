@@ -16,6 +16,7 @@ import com.example.prm_noodle_mobile.customer.cart.CartFragment;
 import com.example.prm_noodle_mobile.customer.orderconfirm.OrderConfirmFragment;
 import com.example.prm_noodle_mobile.customer.combo.ComboFragment;
 import com.example.prm_noodle_mobile.auth.LoginActivity;
+import com.example.prm_noodle_mobile.customer.userprofile.UserProfileFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
@@ -50,6 +51,8 @@ public class MainActivity extends AppCompatActivity {
                 selectedFragment = new ProductFragment();
             } else if (itemId == R.id.nav_order_confirm) {
                 selectedFragment = new OrderConfirmFragment();
+            }else if (itemId == R.id.nav_user_profile) { // Bổ sung điều kiện này
+                selectedFragment = new UserProfileFragment(); // Bổ sung điều kiện này
             }
 
             if (selectedFragment != null) {
