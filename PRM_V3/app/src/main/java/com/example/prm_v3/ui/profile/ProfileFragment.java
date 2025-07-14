@@ -193,16 +193,14 @@ public class ProfileFragment extends Fragment {
                 .setTitle("Đăng xuất")
                 .setMessage("Bạn có chắc chắn muốn đăng xuất?")
                 .setPositiveButton("Đăng xuất", (dialog, which) -> {
-                    // Handle logout logic here
-                    // For example: clear preferences, navigate to login
-                    Toast.makeText(getContext(), "Đang đăng xuất...", Toast.LENGTH_SHORT).show();
-
-                    // You can implement actual logout logic here
-                    // Example:
-                    // SharedPreferences prefs = getContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
-                    // prefs.edit().clear().apply();
-                    // startActivity(new Intent(getContext(), LoginActivity.class));
-                    // getActivity().finish();
+                    // Xóa token khỏi SharedPreferences
+                    requireContext().getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
+                        .edit()
+                        .remove("token")
+                        .apply();
+                    // Chuyển về LoginActivity và đóng MainActivity
+                    startActivity(new android.content.Intent(getContext(), com.example.prm_v3.ui.auth.LoginActivity.class));
+                    requireActivity().finish();
                 })
                 .setNegativeButton("Hủy", null)
                 .show();

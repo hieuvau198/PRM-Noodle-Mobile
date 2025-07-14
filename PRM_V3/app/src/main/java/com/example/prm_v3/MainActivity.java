@@ -12,9 +12,8 @@ import com.example.prm_v3.ui.orders.OrderFragment;
 import com.example.prm_v3.ui.create.CreateOrderFragment;
 import com.example.prm_v3.ui.cooking.cookingFragment;
 import com.example.prm_v3.ui.payment.paymentFragment;
-import com.example.prm_v3.ui.profile.profileFragment;
-import com.example.prm_v3.ui.auth.LoginActivity;
 import com.example.prm_v3.ui.profile.ProfileFragment; // Updated import
+import com.example.prm_v3.ui.auth.LoginActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
@@ -24,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        com.example.prm_v3.api.ApiClient.init(getApplicationContext());
         // Kiểm tra token, nếu chưa đăng nhập thì chuyển sang LoginActivity
         SharedPreferences prefs = getSharedPreferences("app_prefs", MODE_PRIVATE);
         String token = prefs.getString("token", null);

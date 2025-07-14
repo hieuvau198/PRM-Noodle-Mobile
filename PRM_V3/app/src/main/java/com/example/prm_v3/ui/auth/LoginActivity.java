@@ -21,6 +21,8 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import java.io.IOException;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText edtEmail, edtPassword;
@@ -67,12 +69,17 @@ public class LoginActivity extends AppCompatActivity {
             public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     AuthResponse auth = response.body();
+
                     // Lưu token vào SharedPreferences
                     getSharedPreferences("app_prefs", MODE_PRIVATE)
-                        .edit()
-                        .putString("token", auth.getToken())
-                        .apply();
-                    // Chuyển sang MainActivity (màn order)
+                            .edit()
+                            .putString("token", auth.getToken())
+                            .apply();
+
+                    // ✅ Thông báo đăng nhập thành công
+                    Toast.makeText(LoginActivity.this, "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
+
+                    // Chuyển sang MainActivity (trang đơn hàng)
                     Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                     startActivity(intent);
                     finish();

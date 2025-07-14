@@ -14,7 +14,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class ProfileViewModel  extends ViewModel {
+public class ProfileViewModel extends ViewModel {
     private static final String TAG = "ProfileViewModel";
 
     private ApiService apiService;
