@@ -23,11 +23,13 @@ import retrofit2.Response;
 import java.io.IOException;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.widget.ImageButton;
+import android.text.method.HideReturnsTransformationMethod;
+import android.text.method.PasswordTransformationMethod;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText edtEmail, edtPassword;
     private Button btnLogin;
-    // private TextView tvRegister; // Xóa link đăng ký
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,7 +39,6 @@ public class LoginActivity extends AppCompatActivity {
         edtEmail = findViewById(R.id.edtEmail);
         edtPassword = findViewById(R.id.edtPassword);
         btnLogin = findViewById(R.id.btnLogin);
-        // tvRegister = findViewById(R.id.tvRegister); // Xóa link đăng ký
 
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -46,13 +47,6 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        // Xóa sự kiện chuyển sang đăng ký
-        // tvRegister.setOnClickListener(new View.OnClickListener() {
-        //     @Override
-        //     public void onClick(View v) {
-        //         startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
-        //     }
-        // });
     }
 
     private void login() {
