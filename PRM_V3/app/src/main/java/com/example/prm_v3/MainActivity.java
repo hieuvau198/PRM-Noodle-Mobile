@@ -1,5 +1,8 @@
 package com.example.prm_v3;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
@@ -10,6 +13,7 @@ import com.example.prm_v3.ui.create.CreateOrderFragment;
 import com.example.prm_v3.ui.cooking.cookingFragment;
 import com.example.prm_v3.ui.payment.paymentFragment;
 import com.example.prm_v3.ui.profile.profileFragment;
+import com.example.prm_v3.ui.auth.LoginActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
@@ -19,6 +23,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Kiểm tra token, nếu chưa đăng nhập thì chuyển sang LoginActivity
+        SharedPreferences prefs = getSharedPreferences("app_prefs", MODE_PRIVATE);
+        String token = prefs.getString("token", null);
+        if (token == null || token.isEmpty()) {
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
         setContentView(R.layout.activity_main);
 
         // Ẩn ActionBar mặc định để sử dụng header riêng trong Fragment

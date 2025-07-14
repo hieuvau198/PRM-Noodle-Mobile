@@ -5,6 +5,8 @@ import com.example.prm_v3.model.OrderResponse;
 import com.example.prm_v3.model.Product;
 import com.example.prm_v3.model.Combo;
 import com.example.prm_v3.model.Topping;
+import com.example.prm_v3.model.Login;
+import com.example.prm_v3.api.AuthResponse;
 
 import java.util.List;
 
@@ -40,6 +42,10 @@ public interface ApiService {
 
     @POST("api/Order")
     Call<Order> createOrder(@Body CreateOrderRequest request);
+
+    // Auth APIs
+    @POST("api/Auth/login")
+    Call<AuthResponse> login(@Body Login request);
 
     // Product APIs - Thử các endpoint khác nhau
     @GET("api/product")  // lowercase
