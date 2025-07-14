@@ -25,7 +25,7 @@ public class User {
     private String role;
 
     @SerializedName("isActive")
-    private boolean isActive;
+    private Boolean isActive;
 
     @SerializedName("createdAt")
     private String createdAt;
@@ -35,6 +35,12 @@ public class User {
 
     // Constructors
     public User() {}
+
+    public User(String username, String email, String fullName) {
+        this.username = username;
+        this.email = email;
+        this.fullName = fullName;
+    }
 
     // Getters and Setters
     public int getUserId() { return userId; }
@@ -58,12 +64,58 @@ public class User {
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
 
-    public boolean isActive() { return isActive; }
-    public void setActive(boolean active) { isActive = active; }
+    public Boolean getIsActive() { return isActive; }
+    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
 
     public String getCreatedAt() { return createdAt; }
     public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
 
     public String getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(String updatedAt) { this.updatedAt = updatedAt; }
-} 
+
+    // Helper methods
+    public String getDisplayRole() {
+        if (role == null) return "Người dùng";
+        switch (role.toLowerCase()) {
+            case "admin": return "Quản trị viên";
+            case "staff": return "Nhân viên";
+            case "manager": return "Quản lý";
+            case "customer": return "Khách hàng";
+            default: return role;
+        }
+    }
+
+    public String getFormattedCreatedDate() {
+        return formatDate(createdAt);
+    }
+
+    public String getFormattedUpdatedDate() {
+        return formatDate(updatedAt);
+    }
+
+    private String formatDate(String dateString) {
+        if (dateString == null || dateString.isEmpty()) {
+            return "Chưa có";
+        }
+        try {
+            return dateString.replace("T", " ").substring(0,
+                    Math.min(16, dateString.replace("T", " ").length()));
+        } catch (Exception e) {
+            return dateString;
+        }
+    }
+
+    public boolean hasPhone() {
+        return phone != null && !phone.trim().isEmpty() && !phone.equals("null");
+    }
+
+    public boolean hasAddress() {
+        return address != null && !address.trim().isEmpty() && !address.equals("null");
+    }
+
+    @Override
+    public String toString() {
+        return String.format("User{id=%d, username='%s', fullName='%s', role='%s'}",
+                userId, username, fullName, role);
+    }
+}

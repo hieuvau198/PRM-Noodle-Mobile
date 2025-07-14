@@ -7,6 +7,7 @@ import com.example.prm_v3.model.Combo;
 import com.example.prm_v3.model.Topping;
 import com.example.prm_v3.model.Login;
 import com.example.prm_v3.api.AuthResponse;
+import com.example.prm_v3.model.User;
 
 import java.util.List;
 
@@ -93,5 +94,14 @@ public interface ApiService {
     Call<Topping> getToppingById(@Path("toppingId") int toppingId);
 
     @GET("api/topping/available")
+
     Call<List<Topping>> getAvailableToppings();
+    @GET("api/Auth/profile")
+    Call<User> getUserProfile();
+
+    @PUT("api/Auth/profile")
+    Call<User> updateProfile(@Body UpdateProfileRequest request);
+
+    @POST("api/Auth/change-password")
+    Call<ApiResponse> changePassword(@Body ChangePasswordRequest request);
 }
