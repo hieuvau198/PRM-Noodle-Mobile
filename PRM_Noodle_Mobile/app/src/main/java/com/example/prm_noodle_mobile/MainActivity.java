@@ -20,6 +20,22 @@ import com.example.prm_noodle_mobile.customer.userprofile.UserProfileFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleVnpayCallback(intent);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        handleVnpayCallback(getIntent());
+    }
+
+    private void handleVnpayCallback(Intent intent) {
+        // Đã loại bỏ callback VNPay, không cần xử lý gì ở đây nữa
+    }
 
     private BottomNavigationView bottomNavigationView;
     private SharedPreferences sharedPreferences;
