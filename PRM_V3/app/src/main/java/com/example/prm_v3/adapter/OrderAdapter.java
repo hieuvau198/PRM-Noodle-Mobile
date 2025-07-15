@@ -14,7 +14,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.prm_v3.R;
 import com.example.prm_v3.model.Order;
-import com.example.prm_v3.utils.StatusHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -129,12 +128,9 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
 
             // Order header
             tvOrderTitle.setText("Đơn hàng #" + order.getOrderId());
-
-            // Use StatusHelper for status display
-            String status = order.getOrderStatus();
-            tvOrderStatus.setText(StatusHelper.getStatusDisplayText(status));
-            tvOrderStatus.setTextColor(ContextCompat.getColor(context, StatusHelper.getStatusColor(status)));
-            tvOrderStatus.setBackground(ContextCompat.getDrawable(context, StatusHelper.getStatusBackground(status)));
+            tvOrderStatus.setText(order.getStatusDisplayText());
+            tvOrderStatus.setTextColor(getStatusColor(order.getOrderStatus()));
+            tvOrderStatus.setBackground(getStatusBackground(order.getOrderStatus()));
 
             // Customer info
             String customerText = "Khách hàng: " + (order.getUserName() != null ? order.getUserName() : "N/A");
@@ -145,24 +141,45 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             tvTotalAmount.setText(order.getFormattedAmount());
             tvPaymentMethod.setText(order.getPaymentMethodText());
 
-            // Item count - try API first, then calculate
-            int totalItems = order.getTotalItemsFromAPI();
-            if (totalItems <= 0) {
+            // FIX: Use totalItems from API response directly first
+            int totalItems = 0;
+
+            // Try to get totalItems from API response first (this should be the main source)
+            try {
+                // Check if Order has a totalItems field from API
+                java.lang.reflect.Field totalItemsField = order.getClass().getDeclaredField("totalItems");
+                totalItemsField.setAccessible(true);
+                Object totalItemsValue = totalItemsField.get(order);
+                if (totalItemsValue instanceof Integer) {
+                    totalItems = (Integer) totalItemsValue;
+                    Log.d(TAG, "Got totalItems from API: " + totalItems);
+                }
+            } catch (Exception e) {
+                Log.d(TAG, "No totalItems field in API response, calculating manually");
+                // Fallback to manual calculation
                 totalItems = calculateTotalItems(order);
             }
+
+            // If still 0, try the order's method
+            if (totalItems == 0) {
+                totalItems = order.getTotalItems();
+                Log.d(TAG, "Got totalItems from order method: " + totalItems);
+            }
+
             tvItemCount.setText(totalItems + " món");
             Log.d(TAG, "Set item count: " + totalItems + " món");
 
             tvPaymentStatus.setText(order.getPaymentStatusText());
 
-            // Setup buttons using StatusHelper
+            // Setup buttons based on order status
             setupButtons(order);
         }
 
+        // FIX: Method để tính số món chính xác
         private int calculateTotalItems(Order order) {
             int total = 0;
 
-            // Count items from orderItems
+            // Đếm items từ orderItems
             if (order.getOrderItems() != null && !order.getOrderItems().isEmpty()) {
                 for (var item : order.getOrderItems()) {
                     total += item.getQuantity();
@@ -170,7 +187,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
                 Log.d(TAG, "Items from orderItems: " + total);
             }
 
-            // Count items from orderCombos
+            // Đếm items từ orderCombos
             if (order.getOrderCombos() != null && !order.getOrderCombos().isEmpty()) {
                 for (var combo : order.getOrderCombos()) {
                     total += combo.getQuantity();
@@ -184,26 +201,19 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
 
         private void setupButtons(Order order) {
             String status = order.getOrderStatus();
-
-            // Check if order can be updated or cancelled using StatusHelper
-            boolean canUpdate = StatusHelper.canUpdateToNextStatus(status);
-            boolean canCancel = StatusHelper.canCancelOrder(status);
-
-            if (canUpdate) {
-                btnConfirmOrder.setVisibility(View.VISIBLE);
-                btnConfirmOrder.setText(StatusHelper.getActionButtonText(status));
-                setupButtonClickListeners(order);
-            } else {
+            if (status == null) {
                 btnConfirmOrder.setVisibility(View.GONE);
+                btnCancelOrder.setVisibility(View.GONE);
+                return;
             }
 
-            if (canCancel) {
-                btnCancelOrder.setVisibility(View.VISIBLE);
-                btnCancelOrder.setText("Hủy đơn");
-                setupButtonClickListeners(order);
-            } else {
-                btnCancelOrder.setVisibility(View.GONE);
-            }
+            switch (status.toLowerCase()) {
+                case "pending":
+                    btnConfirmOrder.setVisibility(View.VISIBLE);
+                    btnCancelOrder.setVisibility(View.VISIBLE);
+                    btnConfirmOrder.setText("Xác nhận");
+                    setupButtonClickListeners(order);
+                    break;
 
                 case "confirmed":
                 case "preparing":
@@ -224,10 +234,6 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
                     btnConfirmOrder.setVisibility(View.GONE);
                     btnCancelOrder.setVisibility(View.GONE);
                     break;
-            // Special case for final statuses
-            if (StatusHelper.isFinalStatus(status)) {
-                btnConfirmOrder.setVisibility(View.GONE);
-                btnCancelOrder.setVisibility(View.GONE);
             }
         }
 
@@ -243,6 +249,48 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
                     listener.onCancelOrder(order);
                 }
             });
+        }
+
+        private int getStatusColor(String status) {
+            if (status == null || context == null) return ContextCompat.getColor(context, R.color.gray_600);
+
+            switch (status.toLowerCase()) {
+                case "pending":
+                    return ContextCompat.getColor(context, R.color.orange_600);
+                case "confirmed":
+                    return ContextCompat.getColor(context, R.color.blue_600);
+                case "preparing":
+                    return ContextCompat.getColor(context, R.color.yellow_600);
+                case "delivered":
+                    return ContextCompat.getColor(context, R.color.purple_600);
+                case "completed":
+                    return ContextCompat.getColor(context, R.color.green_600);
+                case "cancelled":
+                    return ContextCompat.getColor(context, R.color.red_600);
+                default:
+                    return ContextCompat.getColor(context, R.color.gray_600);
+            }
+        }
+
+        private android.graphics.drawable.Drawable getStatusBackground(String status) {
+            if (status == null || context == null) return ContextCompat.getDrawable(context, R.drawable.bg_status_badge);
+
+            switch (status.toLowerCase()) {
+                case "pending":
+                    return ContextCompat.getDrawable(context, R.drawable.bg_status_pending);
+                case "confirmed":
+                    return ContextCompat.getDrawable(context, R.drawable.bg_status_confirmed);
+                case "preparing":
+                    return ContextCompat.getDrawable(context, R.drawable.bg_status_preparing);
+                case "delivered":
+                    return ContextCompat.getDrawable(context, R.drawable.bg_status_delivered);
+                case "completed":
+                    return ContextCompat.getDrawable(context, R.drawable.bg_status_completed);
+                case "cancelled":
+                    return ContextCompat.getDrawable(context, R.drawable.bg_status_cancelled);
+                default:
+                    return ContextCompat.getDrawable(context, R.drawable.bg_status_badge);
+            }
         }
     }
 }
