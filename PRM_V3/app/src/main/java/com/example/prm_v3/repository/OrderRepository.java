@@ -255,6 +255,113 @@ public class OrderRepository {
         });
     }
 
+    // PATCH: Update order status using PATCH endpoints
+    public void patchOrderStatus(int orderId, String newStatus, OnUpdateStatusListener listener) {
+        if (newStatus == null || newStatus.trim().isEmpty()) {
+            if (listener != null) {
+                listener.onError("Trạng thái không hợp lệ");
+            }
+            return;
+        }
+
+        Call<Order> call = null;
+        switch (newStatus.toLowerCase()) {
+            case "confirmed":
+                call = apiService.confirmOrder(orderId);
+                break;
+            case "preparing":
+                call = apiService.prepareOrder(orderId);
+                break;
+            case "delivered":
+                call = apiService.deliverOrder(orderId);
+                break;
+            case "completed":
+                call = apiService.completeOrder(orderId);
+                break;
+            case "cancelled":
+                call = apiService.cancelOrder(orderId);
+                break;
+            default:
+                if (listener != null) {
+                    listener.onError("Trạng thái không hợp lệ hoặc không hỗ trợ PATCH: " + newStatus);
+                }
+                return;
+        }
+
+        if (call == null) {
+            if (listener != null) {
+                listener.onError("Không thể tạo request PATCH cho trạng thái: " + newStatus);
+            }
+            return;
+        }
+
+        call.enqueue(new retrofit2.Callback<Order>() {
+            @Override
+            public void onResponse(Call<Order> call, retrofit2.Response<Order> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    Order updatedOrder = response.body();
+                    initializeOrderLists(updatedOrder);
+                    updateLocalOrderStatus(orderId, updatedOrder);
+                    // Nếu xác nhận đơn hàng thành công thì tạo payment
+                    if (newStatus.equalsIgnoreCase("confirmed")) {
+                        createPaymentFromOrder(updatedOrder, listener);
+                    }
+                    if (listener != null) {
+                        listener.onSuccess("Cập nhật trạng thái thành công");
+                    }
+                } else {
+                    String errorMsg = "Lỗi khi cập nhật: " + response.code();
+                    if (response.code() == 400) {
+                        errorMsg = "Trạng thái không hợp lệ";
+                    } else if (response.code() == 404) {
+                        errorMsg = "Không tìm thấy đơn hàng";
+                    }
+                    if (listener != null) {
+                        listener.onError(errorMsg);
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Order> call, Throwable t) {
+                String errorMsg = "Lỗi kết nối: " + t.getMessage();
+                if (listener != null) {
+                    listener.onError(errorMsg);
+                }
+            }
+        });
+    }
+
+    // Tạo payment mới từ order đã xác nhận, truyền callback để UI reload
+    private void createPaymentFromOrder(Order order, OnUpdateStatusListener listener) {
+        if (order == null) return;
+        com.example.prm_v3.model.Payment payment = new com.example.prm_v3.model.Payment();
+        payment.setOrderId(order.getOrderId());
+        payment.setCustomerUserId(order.getUserId());
+        payment.setCustomerName(order.getUserName());
+        payment.setPaymentAmount(order.getTotalAmount());
+        payment.setPaymentMethod(order.getPaymentMethod());
+        payment.setPaymentStatus("pending"); // Khi mới tạo payment
+        apiService.createPayment(payment).enqueue(new retrofit2.Callback<com.example.prm_v3.model.Payment>() {
+            @Override
+            public void onResponse(Call<com.example.prm_v3.model.Payment> call, retrofit2.Response<com.example.prm_v3.model.Payment> response) {
+                if (listener != null) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        listener.onPaymentCreated(true, "Tạo payment thành công");
+                    } else {
+                        listener.onPaymentCreated(false, "Tạo payment thất bại: " + response.code());
+                    }
+                }
+            }
+            @Override
+            public void onFailure(Call<com.example.prm_v3.model.Payment> call, Throwable t) {
+                if (listener != null) {
+                    listener.onPaymentCreated(false, "Lỗi tạo payment: " + t.getMessage());
+                }
+            }
+        });
+    }
+
     // Helper method to initialize order lists
     private void initializeOrderLists(Order order) {
         if (order.getOrderItems() == null) {
@@ -327,5 +434,6 @@ public class OrderRepository {
     public interface OnUpdateStatusListener {
         void onSuccess(String message);
         void onError(String error);
+        default void onPaymentCreated(boolean success, String message) {}
     }
 }

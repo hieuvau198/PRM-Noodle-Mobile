@@ -5,6 +5,10 @@ import com.example.prm_v3.model.OrderResponse;
 import com.example.prm_v3.model.Product;
 import com.example.prm_v3.model.Combo;
 import com.example.prm_v3.model.Topping;
+import com.example.prm_v3.model.Login;
+import com.example.prm_v3.api.AuthResponse;
+import com.example.prm_v3.model.User;
+import com.example.prm_v3.model.Payment;
 
 import java.util.List;
 
@@ -15,6 +19,7 @@ import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
+import retrofit2.http.PATCH;
 
 public interface ApiService {
 
@@ -35,11 +40,30 @@ public interface ApiService {
     Call<Order> updateOrderStatus(@Path("orderId") int orderId,
                                   @Body UpdateOrderStatusRequest request);
 
+    @PATCH("api/Order/{orderId}/confirm")
+    Call<Order> confirmOrder(@Path("orderId") int orderId);
+
+    @PATCH("api/Order/{orderId}/complete")
+    Call<Order> completeOrder(@Path("orderId") int orderId);
+
+    @PATCH("api/Order/{orderId}/prepare")
+    Call<Order> prepareOrder(@Path("orderId") int orderId);
+
+    @PATCH("api/Order/{orderId}/deliver")
+    Call<Order> deliverOrder(@Path("orderId") int orderId);
+
+    @PATCH("api/Order/{orderId}/cancel")
+    Call<Order> cancelOrder(@Path("orderId") int orderId);
+
     @GET("api/order/{orderId}")
     Call<Order> getOrderById(@Path("orderId") int orderId);
 
     @POST("api/Order")
     Call<Order> createOrder(@Body CreateOrderRequest request);
+
+    // Auth APIs
+    @POST("api/Auth/login")
+    Call<AuthResponse> login(@Body Login request);
 
     // Product APIs - Thử các endpoint khác nhau
     @GET("api/product")  // lowercase
@@ -87,5 +111,21 @@ public interface ApiService {
     Call<Topping> getToppingById(@Path("toppingId") int toppingId);
 
     @GET("api/topping/available")
+
     Call<List<Topping>> getAvailableToppings();
+    @GET("api/Auth/profile")
+    Call<User> getUserProfile();
+
+    @PUT("api/Auth/profile")
+    Call<User> updateProfile(@Body UpdateProfileRequest request);
+
+    @POST("api/Auth/change-password")
+    Call<ApiResponse> changePassword(@Body ChangePasswordRequest request);
+
+    // Payment APIs
+    @POST("api/Payments")
+    Call<Payment> createPayment(@Body Payment payment);
+
+    @GET("api/Payments")
+    Call<List<Payment>> getPayments();
 }

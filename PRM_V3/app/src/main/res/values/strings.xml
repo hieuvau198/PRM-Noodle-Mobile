@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">PRM_V3</string>
+    <string name="app_name">Internal app</string>
     <string name="title_cooking">Đang chuẩn bị</string>
     <string name="title_orders">Đơn hàng</string>
     <string name="title_create">Đặt đơn</string>

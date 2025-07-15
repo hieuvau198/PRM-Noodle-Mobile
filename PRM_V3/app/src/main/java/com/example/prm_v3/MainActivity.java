@@ -1,5 +1,8 @@
 package com.example.prm_v3;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
@@ -9,7 +12,8 @@ import com.example.prm_v3.ui.orders.OrderFragment;
 import com.example.prm_v3.ui.create.CreateOrderFragment;
 import com.example.prm_v3.ui.cooking.cookingFragment;
 import com.example.prm_v3.ui.payment.paymentFragment;
-import com.example.prm_v3.ui.profile.profileFragment;
+import com.example.prm_v3.ui.profile.ProfileFragment; // Updated import
+import com.example.prm_v3.ui.auth.LoginActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
@@ -19,6 +23,22 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        com.example.prm_v3.api.ApiClient.init(getApplicationContext());
+        // Kiểm tra token, nếu chưa đăng nhập thì chuyển sang LoginActivity
+        SharedPreferences prefs = getSharedPreferences("app_prefs", MODE_PRIVATE);
+        String token = prefs.getString("token", null);
+        long expiry = prefs.getLong("token_expiry", 0);
+        if (expiry > 0 && System.currentTimeMillis() > expiry) {
+            // Token hết hạn, xóa token và bắt đăng nhập lại
+            prefs.edit().remove("token").remove("token_expiry").apply();
+            token = null;
+        }
+        if (token == null || token.isEmpty()) {
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
         setContentView(R.layout.activity_main);
 
         // Ẩn ActionBar mặc định để sử dụng header riêng trong Fragment
@@ -46,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (itemId == R.id.navigation_payment) {
                 selectedFragment = new paymentFragment();
             } else if (itemId == R.id.navigation_profile) {
-                selectedFragment = new profileFragment();
+                selectedFragment = new ProfileFragment(); // Updated to use new ProfileFragment
             }
 
             if (selectedFragment != null) {
@@ -64,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
         fragmentTransaction.commit();
     }
 
-    // Method để refresh fragment hiện tại (có thể dùng sau này)
+    // Method để refresh fragment hiện tại
     private void refreshCurrentFragment() {
         Fragment currentFragment = getSupportFragmentManager()
                 .findFragmentById(R.id.nav_host_fragment_activity_main);
@@ -77,7 +97,39 @@ public class MainActivity extends AppCompatActivity {
                 // Handle error if refreshData method doesn't exist
                 e.printStackTrace();
             }
+        } else if (currentFragment instanceof ProfileFragment) {
+            // Refresh profile if needed
+            try {
+                // ProfileFragment will auto-refresh via ViewModel
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         // Có thể thêm refresh cho các fragment khác nếu cần
+    }
+
+    // Helper method to get current fragment
+    public Fragment getCurrentFragment() {
+        return getSupportFragmentManager()
+                .findFragmentById(R.id.nav_host_fragment_activity_main);
+    }
+
+    // Method to navigate to specific fragment (can be used from other activities)
+    public void navigateToFragment(Class<? extends Fragment> fragmentClass) {
+        try {
+            Fragment fragment = fragmentClass.newInstance();
+            loadFragment(fragment);
+
+            // Update bottom navigation selection
+            if (fragment instanceof OrderFragment) {
+                bottomNavigationView.setSelectedItemId(R.id.navigation_orders);
+            } else if (fragment instanceof ProfileFragment) {
+                bottomNavigationView.setSelectedItemId(R.id.navigation_profile);
+            }
+            // Add more fragment types as needed
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

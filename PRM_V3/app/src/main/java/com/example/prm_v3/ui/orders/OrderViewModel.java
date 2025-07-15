@@ -61,7 +61,7 @@ public class OrderViewModel extends ViewModel {
     }
 
     public void updateOrderStatus(int orderId, String newStatus) {
-        orderRepository.updateOrderStatus(orderId, newStatus, new OrderRepository.OnUpdateStatusListener() {
+        orderRepository.patchOrderStatus(orderId, newStatus, new OrderRepository.OnUpdateStatusListener() {
             @Override
             public void onSuccess(String message) {
                 statusMessage.postValue(message);

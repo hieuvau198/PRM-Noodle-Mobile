@@ -101,13 +101,33 @@ public class OrderDetailViewModel extends ViewModel {
             return;
         }
 
-        UpdateOrderStatusRequest request = createStatusRequest(newStatus);
-        if (request == null) {
-            statusMessage.setValue("Không thể tạo request cập nhật trạng thái");
+        Call<Order> call = null;
+        switch (newStatus.toLowerCase()) {
+            case "confirmed":
+                call = apiService.confirmOrder(orderId);
+                break;
+            case "preparing":
+                call = apiService.prepareOrder(orderId);
+                break;
+            case "delivered":
+                call = apiService.deliverOrder(orderId);
+                break;
+            case "completed":
+                call = apiService.completeOrder(orderId);
+                break;
+            case "cancelled":
+                call = apiService.cancelOrder(orderId);
+                break;
+            default:
+                statusMessage.setValue("Trạng thái không hợp lệ hoặc không hỗ trợ PATCH: " + newStatus);
+                return;
+        }
+
+        if (call == null) {
+            statusMessage.setValue("Không thể tạo request PATCH cho trạng thái: " + newStatus);
             return;
         }
 
-        Call<Order> call = apiService.updateOrderStatus(orderId, request);
         call.enqueue(new Callback<Order>() {
             @Override
             public void onResponse(Call<Order> call, Response<Order> response) {
@@ -124,6 +144,8 @@ public class OrderDetailViewModel extends ViewModel {
 
                     order.setValue(updatedOrder);
                     statusMessage.setValue("Cập nhật trạng thái thành công");
+                    // Reload order detail after status update
+                    loadOrderDetail(orderId);
                 } else {
                     String errorMsg = "Lỗi khi cập nhật trạng thái";
                     if (response.code() == 400) {
