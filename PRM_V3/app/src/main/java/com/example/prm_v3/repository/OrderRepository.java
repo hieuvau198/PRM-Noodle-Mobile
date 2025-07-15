@@ -8,8 +8,12 @@ import androidx.lifecycle.MutableLiveData;
 import com.example.prm_v3.api.ApiClient;
 import com.example.prm_v3.api.ApiService;
 import com.example.prm_v3.model.Order;
+import com.example.prm_v3.model.OrderCombo;
+import com.example.prm_v3.model.OrderItem;
 import com.example.prm_v3.model.OrderResponse;
+import com.example.prm_v3.model.OrderStatistics;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
@@ -91,8 +95,14 @@ public class OrderRepository {
     // ========== PATCH STATUS UPDATE METHODS ==========
 
     public void patchOrderStatus(int orderId, String newStatus, OnUpdateStatusListener listener) {
-        Call<Order> call = null;
+        if (newStatus == null || newStatus.trim().isEmpty()) {
+            if (listener != null) {
+                listener.onError("Trạng thái không hợp lệ");
+            }
+            return;
+        }
 
+        Call<Order> call = null;
         switch (newStatus.toLowerCase()) {
             case "confirmed":
                 call = apiService.confirmOrder(orderId);
@@ -111,30 +121,17 @@ public class OrderRepository {
                 break;
             default:
                 if (listener != null) {
-                    listener.onError("Trạng thái không hợp lệ: " + newStatus);
+                    listener.onError("Trạng thái không hợp lệ hoặc không hỗ trợ PATCH: " + newStatus);
                 }
                 return;
         }
 
-        if (call != null) {
-            call.enqueue(new Callback<Order>() {
-                @Override
-                public void onResponse(Call<Order> call, Response<Order> response) {
-                    if (response.isSuccessful() && response.body() != null) {
-                        Log.d(TAG, "Status updated successfully for order " + orderId + " to " + newStatus);
-                        if (listener != null) {
-                            listener.onSuccess("Cập nhật trạng thái thành công");
-                        }
-                        // Refresh current data
-                        refreshCurrentData();
-                    } else {
-                        String errorMsg = "Lỗi cập nhật trạng thái: " + response.code();
-                        Log.e(TAG, errorMsg);
-                        if (listener != null) {
-                            listener.onError(errorMsg);
-                        }
-                    }
-                }
+        if (call == null) {
+            if (listener != null) {
+                listener.onError("Không thể tạo request PATCH cho trạng thái: " + newStatus);
+            }
+            return;
+        }
 
         call.enqueue(new retrofit2.Callback<Order>() {
             @Override
@@ -161,8 +158,15 @@ public class OrderRepository {
                         listener.onError(errorMsg);
                     }
                 }
-            });
-        }
+            }
+            @Override
+            public void onFailure(Call<Order> call, Throwable t) {
+                String errorMsg = "Lỗi kết nối: " + t.getMessage();
+                if (listener != null) {
+                    listener.onError(errorMsg);
+                }
+            }
+        });
     }
 
     // ========== LEGACY METHODS (kept for backward compatibility) ==========

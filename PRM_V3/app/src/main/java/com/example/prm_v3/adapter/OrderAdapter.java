@@ -204,6 +204,13 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             } else {
                 btnCancelOrder.setVisibility(View.GONE);
             }
+            switch (status.toLowerCase()) {
+                case "pending":
+                    btnConfirmOrder.setVisibility(View.VISIBLE);
+                    btnCancelOrder.setVisibility(View.VISIBLE);
+                    btnConfirmOrder.setText("Xác nhận");
+                    setupButtonClickListeners(order);
+                    break;
 
                 case "confirmed":
                 case "preparing":
@@ -224,6 +231,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
                     btnConfirmOrder.setVisibility(View.GONE);
                     btnCancelOrder.setVisibility(View.GONE);
                     break;
+            }
             // Special case for final statuses
             if (StatusHelper.isFinalStatus(status)) {
                 btnConfirmOrder.setVisibility(View.GONE);
