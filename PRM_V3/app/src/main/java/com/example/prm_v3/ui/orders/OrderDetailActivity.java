@@ -110,15 +110,30 @@ public class OrderDetailActivity extends AppCompatActivity {
         binding.btnUpdateStatus.setOnClickListener(v -> {
             Order order = viewModel.getOrder().getValue();
             if (order != null) {
-                String nextStatus = getNextStatus(order.getOrderStatus());
-                if (nextStatus != null) {
-                    viewModel.updateOrderStatus(orderId, nextStatus);
+                String currentStatus = order.getOrderStatus();
+                // Use specific methods based on current status
+                switch (currentStatus) {
+                    case "pending":
+                        viewModel.confirmOrder(orderId);
+                        break;
+                    case "confirmed":
+                        viewModel.prepareOrder(orderId);
+                        break;
+                    case "preparing":
+                        viewModel.deliverOrder(orderId);
+                        break;
+                    case "delivered":
+                        viewModel.completeOrder(orderId);
+                        break;
+                    default:
+                        Toast.makeText(this, "Không thể cập nhật trạng thái từ: " + currentStatus, Toast.LENGTH_SHORT).show();
+                        break;
                 }
             }
         });
 
         binding.btnCancelOrder.setOnClickListener(v -> {
-            viewModel.updateOrderStatus(orderId, "cancelled");
+            viewModel.cancelOrder(orderId);
         });
 
         binding.fabRefresh.setOnClickListener(v -> {
@@ -230,16 +245,6 @@ public class OrderDetailActivity extends AppCompatActivity {
                 binding.btnUpdateStatus.setVisibility(View.GONE);
                 binding.btnCancelOrder.setVisibility(View.GONE);
                 break;
-        }
-    }
-
-    private String getNextStatus(String currentStatus) {
-        switch (currentStatus) {
-            case "pending": return "confirmed";
-            case "confirmed": return "preparing";
-            case "preparing": return "delivered";
-            case "delivered": return "completed";
-            default: return null;
         }
     }
 

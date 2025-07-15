@@ -152,13 +152,8 @@ public class OrderFragment extends Fragment implements OrderAdapter.OnOrderActio
         isLoading = true;
         currentPage = 1;
 
-        if (currentFilter.equals("all")) {
-            Log.d(TAG, "Loading all orders with pagination");
-            orderViewModel.loadOrdersWithPagination(currentPage, PAGE_SIZE);
-        } else {
-            Log.d(TAG, "Loading orders by status: " + currentFilter);
-            orderViewModel.loadOrdersByStatusWithPagination(currentFilter, currentPage, PAGE_SIZE);
-        }
+        // Use the new direct status endpoints for better performance
+        orderViewModel.loadOrdersByStatusDirect(currentFilter, currentPage, PAGE_SIZE);
     }
 
     private void loadNextPage() {
@@ -166,11 +161,8 @@ public class OrderFragment extends Fragment implements OrderAdapter.OnOrderActio
         isLoading = true;
         currentPage++;
 
-        if (currentFilter.equals("all")) {
-            orderViewModel.loadOrdersWithPagination(currentPage, PAGE_SIZE);
-        } else {
-            orderViewModel.loadOrdersByStatusWithPagination(currentFilter, currentPage, PAGE_SIZE);
-        }
+        // Use the new direct status endpoints for pagination
+        orderViewModel.loadOrdersByStatusDirect(currentFilter, currentPage, PAGE_SIZE);
     }
 
     private void updateTabAppearance() {
@@ -294,16 +286,35 @@ public class OrderFragment extends Fragment implements OrderAdapter.OnOrderActio
         orderViewModel.getStatusMessage().observe(getViewLifecycleOwner(), message -> {
             if (message != null && !message.isEmpty()) {
                 Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+                // Refresh data after status update
+                refreshDataComplete();
             }
         });
     }
 
     @Override
     public void onConfirmOrder(Order order) {
-        String newStatus = getNextStatus(order.getOrderStatus());
-        if (newStatus != null) {
-            orderViewModel.updateOrderStatus(order.getOrderId(), newStatus);
-            Toast.makeText(getContext(), "Đã cập nhật trạng thái đơn hàng", Toast.LENGTH_SHORT).show();
+        String nextStatus = getNextStatus(order.getOrderStatus());
+        if (nextStatus != null) {
+            // Use specific methods for better tracking
+            switch (nextStatus) {
+                case "confirmed":
+                    orderViewModel.confirmOrder(order.getOrderId());
+                    break;
+                case "preparing":
+                    orderViewModel.prepareOrder(order.getOrderId());
+                    break;
+                case "delivered":
+                    orderViewModel.deliverOrder(order.getOrderId());
+                    break;
+                case "completed":
+                    orderViewModel.completeOrder(order.getOrderId());
+                    break;
+                default:
+                    orderViewModel.updateOrderStatus(order.getOrderId(), nextStatus);
+                    break;
+            }
+            Toast.makeText(getContext(), "Đang cập nhật trạng thái đơn hàng...", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -317,8 +328,8 @@ public class OrderFragment extends Fragment implements OrderAdapter.OnOrderActio
 
     @Override
     public void onCancelOrder(Order order) {
-        orderViewModel.updateOrderStatus(order.getOrderId(), "cancelled");
-        Toast.makeText(getContext(), "Đã hủy đơn hàng", Toast.LENGTH_SHORT).show();
+        orderViewModel.cancelOrder(order.getOrderId());
+        Toast.makeText(getContext(), "Đang hủy đơn hàng...", Toast.LENGTH_SHORT).show();
     }
 
     @Override
