@@ -19,6 +19,7 @@ import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
+import retrofit2.http.PATCH;
 
 public interface ApiService {
 
@@ -38,6 +39,21 @@ public interface ApiService {
     @PUT("api/order/{orderId}/status")
     Call<Order> updateOrderStatus(@Path("orderId") int orderId,
                                   @Body UpdateOrderStatusRequest request);
+
+    @PATCH("api/Order/{orderId}/confirm")
+    Call<Order> confirmOrder(@Path("orderId") int orderId);
+
+    @PATCH("api/Order/{orderId}/complete")
+    Call<Order> completeOrder(@Path("orderId") int orderId);
+
+    @PATCH("api/Order/{orderId}/prepare")
+    Call<Order> prepareOrder(@Path("orderId") int orderId);
+
+    @PATCH("api/Order/{orderId}/deliver")
+    Call<Order> deliverOrder(@Path("orderId") int orderId);
+
+    @PATCH("api/Order/{orderId}/cancel")
+    Call<Order> cancelOrder(@Path("orderId") int orderId);
 
     @GET("api/order/{orderId}")
     Call<Order> getOrderById(@Path("orderId") int orderId);
