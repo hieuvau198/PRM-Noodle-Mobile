@@ -18,8 +18,12 @@ import com.example.prm_noodle_mobile.R;
 import com.example.prm_noodle_mobile.data.api.ApiClient;
 import com.example.prm_noodle_mobile.data.api.OrderApi;
 import com.example.prm_noodle_mobile.data.api.ComboApi;
+import com.example.prm_noodle_mobile.data.api.PaymentApi;
 import com.example.prm_noodle_mobile.data.api.ProductApi;
 import com.example.prm_noodle_mobile.data.api.ToppingApi;
+import android.content.Intent;
+import android.net.Uri;
+import com.example.prm_noodle_mobile.data.model.payment.Payment;
 import com.example.prm_noodle_mobile.data.model.Order;
 import com.example.prm_noodle_mobile.data.model.OrderCombo;
 import com.example.prm_noodle_mobile.data.model.OrderItem;
@@ -85,7 +89,8 @@ public class OrderConfirmFragment extends Fragment {
         confirmOrderButton.setOnClickListener(v -> confirmOrder());
 
         return view;
-    }
+    
+}
 
     private void loadProducts() {
         ProductApi api = ApiClient.getClient(getContext()).create(ProductApi.class);
@@ -173,26 +178,82 @@ public class OrderConfirmFragment extends Fragment {
         String notes = editNotes.getText().toString().trim();
         String paymentMethod = getPaymentMethodString(checkedId);
 
-        // Tạo order với cấu trúc đúng như JSON yêu cầu
+        // Tạo order với đầy đủ userId, orderItems, orderCombos
         Order order = new Order(userId, address, notes, paymentMethod, orderItems, orderCombos);
-
         OrderApi api = ApiClient.getClient(getContext()).create(OrderApi.class);
-        api.createOrder(order).enqueue(new Callback<Void>() {
+        api.createOrder(order).enqueue(new Callback<com.example.prm_noodle_mobile.data.model.OrderCreateResponse>() {
             @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
-                if (response.isSuccessful()) {
-                    Toast.makeText(getContext(), "Order thành công!", Toast.LENGTH_LONG).show();
-                    CartManager.getInstance().clearCart();
-                    // Navigate back to home or show success screen
-                    requireActivity().getSupportFragmentManager().popBackStack();
+            public void onResponse(Call<com.example.prm_noodle_mobile.data.model.OrderCreateResponse> call, Response<com.example.prm_noodle_mobile.data.model.OrderCreateResponse> response) {
+        // ...existing code...
+                if (response.isSuccessful() && response.body() != null) {
+                    int orderId = response.body().getOrderId();
+                    // Tính tổng tiền thực tế
+                    double amount = 0;
+                    for (OrderItem item : orderItems) {
+                        double toppingTotal = 0;
+                        if (item.getToppings() != null) {
+                            for (com.example.prm_noodle_mobile.data.model.ToppingOrder topping : item.getToppings()) {
+                                for (com.example.prm_noodle_mobile.data.model.Topping t : toppingList) {
+                                    if (t.getToppingId() == topping.getToppingId()) {
+                                        toppingTotal += t.getPrice() * topping.getQuantity();
+                                    }
+                                }
+                            }
+                        }
+                        double productPrice = 0;
+                        for (Product p : productList) {
+                            if (p.getProductId() == item.getProductId()) {
+                                productPrice = p.getBasePrice();
+                                break;
+                            }
+                        }
+                        amount += (productPrice + toppingTotal) * item.getQuantity();
+                    }
+                    for (OrderCombo combo : orderCombos) {
+                        for (Combo c : comboList) {
+                            if (c.getComboId() == combo.getComboId()) {
+                                amount += c.getPrice() * combo.getQuantity();
+                                break;
+                            }
+                        }
+                    }
+                    UserSessionManager sessionManager = new UserSessionManager(getContext());
+                    String customerName = null;
+                    try {
+                        customerName = sessionManager.getFullName();
+                    } catch (Exception e) {}
+                    if (customerName == null || customerName.trim().isEmpty()) {
+                        Toast.makeText(getContext(), "Không lấy được tên khách hàng, vui lòng đăng nhập lại!", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    // Gọi API Payment
+                    Payment payment = new Payment(orderId, userId, customerName, amount, paymentMethod);
+                    PaymentApi paymentApi = ApiClient.getClient(getContext()).create(PaymentApi.class);
+                    paymentApi.createPayment(payment).enqueue(new Callback<Void>() {
+                        @Override
+                        public void onResponse(Call<Void> call, Response<Void> response) {
+                            if (response.isSuccessful()) {
+                                Toast.makeText(getContext(), "Thanh toán thành công!", Toast.LENGTH_SHORT).show();
+                                CartManager.getInstance().clearCart();
+                                if (getActivity() != null) {
+                                    getActivity().onBackPressed();
+                                }
+                            } else {
+                                Toast.makeText(getContext(), "Thanh toán thất bại!", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                        @Override
+                        public void onFailure(Call<Void> call, Throwable t) {
+                            Toast.makeText(getContext(), "Lỗi kết nối khi thanh toán!", Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 } else {
-                    Toast.makeText(getContext(), "Đặt hàng thất bại, vui lòng thử lại.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Tạo đơn hàng thất bại!", Toast.LENGTH_SHORT).show();
                 }
             }
-
             @Override
-            public void onFailure(Call<Void> call, Throwable t) {
-                Toast.makeText(getContext(), "Lỗi kết nối!", Toast.LENGTH_SHORT).show();
+            public void onFailure(Call<com.example.prm_noodle_mobile.data.model.OrderCreateResponse> call, Throwable t) {
+                Toast.makeText(getContext(), "Lỗi kết nối khi tạo đơn hàng!", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -203,7 +264,7 @@ public class OrderConfirmFragment extends Fragment {
         } else if (radioButtonId == R.id.radio_digital_wallet) {
             return "digital_wallet";
         } else if (radioButtonId == R.id.radio_bank_transfer) {
-            return "bank_transfer";
+            return "card";
         }
         return "cash"; // default
     }
