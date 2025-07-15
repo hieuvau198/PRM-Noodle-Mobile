@@ -9,8 +9,15 @@ import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface OrderApi {
+
     @POST("/api/Order")
-    Call<Void> createOrder(@Body Order order);
+    Call<com.example.prm_noodle_mobile.data.model.OrderCreateResponse> createOrder(@Body Order order); // trả về orderId
+
+    @POST("/api/Order/{orderId}/items")
+    Call<Void> addOrderItems(@Path("orderId") int orderId, @Body java.util.List<com.example.prm_noodle_mobile.data.model.OrderItem> items);
+
+    @POST("/api/Order/{orderId}/combos")
+    Call<Void> addOrderCombos(@Path("orderId") int orderId, @Body java.util.List<com.example.prm_noodle_mobile.data.model.OrderCombo> combos);
 
     @GET("/api/Order/user/{userId}")
     Call<Object> getOrdersByUser(
