@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import com.example.prm_noodle_mobile.R;
+import com.example.prm_noodle_mobile.customer.orderhistory.OrderHistoryFragment;
 import com.example.prm_noodle_mobile.data.model.UserProfile;
 
 public class UserProfileFragment extends Fragment implements UserProfileContract.View {
@@ -31,6 +32,21 @@ public class UserProfileFragment extends Fragment implements UserProfileContract
 
         presenter = new UserProfilePresenter(this, requireContext());
         presenter.loadUserProfile();
+
+        // Xử lý sự kiện click nút edit profile
+        view.findViewById(R.id.fab_edit_profile).setOnClickListener(v -> {
+            // TODO: Mở màn hình edit profile
+            Toast.makeText(getContext(), "Tính năng đang phát triển", Toast.LENGTH_SHORT).show();
+        });
+
+        // Xử lý sự kiện click nút xem lịch sử đơn hàng
+        view.findViewById(R.id.btn_order_history).setOnClickListener(v -> {
+            // Chuyển sang fragment lịch sử đơn hàng
+            requireActivity().getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, new OrderHistoryFragment())
+                .addToBackStack(null)
+                .commit();
+        });
 
         return view;
     }

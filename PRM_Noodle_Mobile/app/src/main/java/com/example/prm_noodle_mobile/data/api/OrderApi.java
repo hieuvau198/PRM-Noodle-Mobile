@@ -1,6 +1,8 @@
 package com.example.prm_noodle_mobile.data.api;
 
 import com.example.prm_noodle_mobile.data.model.Order;
+import com.example.prm_noodle_mobile.data.model.OrderResponse;
+
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
@@ -18,6 +20,13 @@ public interface OrderApi {
 
     @POST("/api/Order/{orderId}/combos")
     Call<Void> addOrderCombos(@Path("orderId") int orderId, @Body java.util.List<com.example.prm_noodle_mobile.data.model.OrderCombo> combos);
+
+    @GET("/api/Order/user/{userId}")
+    Call<OrderResponse> getUserOrders(
+        @Path("userId") int userId,
+        @Query("page") int page,
+        @Query("pageSize") int pageSize
+    );
 
     @GET("/api/Order/user/{userId}")
     Call<Object> getOrdersByUser(
