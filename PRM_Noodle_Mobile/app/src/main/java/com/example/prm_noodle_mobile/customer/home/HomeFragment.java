@@ -156,7 +156,7 @@ public class HomeFragment extends Fragment implements HomeContract.View {
         }
         RecyclerView rv = dialog.findViewById(R.id.rv_chat_messages);
         EditText etInput = dialog.findViewById(R.id.et_chat_input);
-        Button btnSend = dialog.findViewById(R.id.btn_send_chat);
+        ImageButton btnSend = dialog.findViewById(R.id.btn_send_chat);
         ArrayList<ChatMessageLocal> chatList = new ArrayList<>();
         ChatbotAdapter adapter = new ChatbotAdapter(chatList);
         rv.setLayoutManager(new LinearLayoutManager(getContext()));
