@@ -1,31 +1,37 @@
 package com.example.prm_v3.repository;
 
+import android.util.Log;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+
 import com.example.prm_v3.api.ApiClient;
 import com.example.prm_v3.api.ApiService;
-import com.example.prm_v3.api.UpdateOrderStatusRequest;
 import com.example.prm_v3.model.Order;
-import com.example.prm_v3.model.OrderItem;
 import com.example.prm_v3.model.OrderCombo;
+import com.example.prm_v3.model.OrderItem;
 import com.example.prm_v3.model.OrderResponse;
 import com.example.prm_v3.model.OrderStatistics;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+
 import java.util.ArrayList;
 import java.util.List;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class OrderRepository {
+    private static final String TAG = "OrderRepository";
     private static OrderRepository instance;
     private ApiService apiService;
+
+    // LiveData for UI observation
     private MutableLiveData<List<Order>> ordersLiveData = new MutableLiveData<>();
-    private MutableLiveData<String> errorLiveData = new MutableLiveData<>();
     private MutableLiveData<Boolean> loadingLiveData = new MutableLiveData<>();
+    private MutableLiveData<String> errorLiveData = new MutableLiveData<>();
 
     private OrderRepository() {
         apiService = ApiClient.getApiService();
-        ordersLiveData.setValue(new ArrayList<>());
     }
 
     public static synchronized OrderRepository getInstance() {
@@ -35,227 +41,59 @@ public class OrderRepository {
         return instance;
     }
 
+    // Getters for LiveData
     public LiveData<List<Order>> getOrdersLiveData() {
         return ordersLiveData;
-    }
-
-    public LiveData<String> getErrorLiveData() {
-        return errorLiveData;
     }
 
     public LiveData<Boolean> getLoadingLiveData() {
         return loadingLiveData;
     }
 
-    // ORIGINAL METHOD: Fetch all orders (no pagination)
-    public void fetchOrders() {
+    public LiveData<String> getErrorLiveData() {
+        return errorLiveData;
+    }
+
+    // ========== NEW STATUS-SPECIFIC METHODS ==========
+
+    public void fetchOrdersByStatusDirect(String status, int page, int pageSize) {
         loadingLiveData.setValue(true);
         errorLiveData.setValue(null);
 
-        Call<OrderResponse> call = apiService.getOrders();
-        call.enqueue(new Callback<OrderResponse>() {
-            @Override
-            public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
-                loadingLiveData.setValue(false);
+        Call<OrderResponse> call = null;
 
-                if (response.isSuccessful() && response.body() != null) {
-                    List<Order> orders = response.body().getOrders();
-                    if (orders != null) {
-                        // Ensure all orders have properly initialized lists
-                        for (Order order : orders) {
-                            initializeOrderLists(order);
-                        }
-                        ordersLiveData.setValue(orders);
-                    } else {
-                        ordersLiveData.setValue(new ArrayList<>());
-                    }
-                    errorLiveData.setValue(null);
-                } else {
-                    handleErrorResponse(response.code());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<OrderResponse> call, Throwable t) {
-                loadingLiveData.setValue(false);
-                handleNetworkError(t);
-            }
-        });
-    }
-
-    // NEW: Fetch orders with pagination
-    public void fetchOrdersWithPagination(int page, int pageSize) {
-        loadingLiveData.setValue(true);
-        errorLiveData.setValue(null);
-
-        Call<OrderResponse> call = apiService.getOrders(page, pageSize);
-        call.enqueue(new Callback<OrderResponse>() {
-            @Override
-            public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
-                loadingLiveData.setValue(false);
-
-                if (response.isSuccessful() && response.body() != null) {
-                    List<Order> orders = response.body().getOrders();
-                    if (orders != null) {
-                        // Ensure all orders have properly initialized lists
-                        for (Order order : orders) {
-                            initializeOrderLists(order);
-                        }
-                        ordersLiveData.setValue(orders);
-                    } else {
-                        ordersLiveData.setValue(new ArrayList<>());
-                    }
-                    errorLiveData.setValue(null);
-                } else {
-                    handleErrorResponse(response.code());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<OrderResponse> call, Throwable t) {
-                loadingLiveData.setValue(false);
-                handleNetworkError(t);
-            }
-        });
-    }
-
-    // ORIGINAL METHOD: Fetch orders by status (no pagination)
-    public void fetchOrdersByStatus(String status) {
-        if (status == null || status.trim().isEmpty()) {
-            fetchOrders();
-            return;
+        switch (status.toLowerCase()) {
+            case "pending":
+                call = apiService.getPendingOrders(page, pageSize);
+                break;
+            case "confirmed":
+                call = apiService.getConfirmedOrders(page, pageSize);
+                break;
+            case "preparing":
+                call = apiService.getPreparingOrders(page, pageSize);
+                break;
+            case "delivered":
+                call = apiService.getDeliveredOrders(page, pageSize);
+                break;
+            case "completed":
+                call = apiService.getCompletedOrders(page, pageSize);
+                break;
+            case "cancelled":
+                call = apiService.getCancelledOrders(page, pageSize);
+                break;
+            case "all":
+            default:
+                call = apiService.getOrders(page, pageSize);
+                break;
         }
 
-        loadingLiveData.setValue(true);
-        errorLiveData.setValue(null);
-
-        Call<OrderResponse> call = apiService.getOrdersByStatus(status, 1, 100);
-        call.enqueue(new Callback<OrderResponse>() {
-            @Override
-            public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
-                loadingLiveData.setValue(false);
-
-                if (response.isSuccessful() && response.body() != null) {
-                    List<Order> orders = response.body().getOrders();
-                    if (orders != null) {
-                        // Ensure all orders have properly initialized lists
-                        for (Order order : orders) {
-                            initializeOrderLists(order);
-                        }
-                        ordersLiveData.setValue(orders);
-                    } else {
-                        ordersLiveData.setValue(new ArrayList<>());
-                    }
-                    errorLiveData.setValue(null);
-                } else {
-                    String errorMsg = "Lỗi khi tải dữ liệu theo trạng thái: " + response.code();
-                    errorLiveData.setValue(errorMsg);
-                }
-            }
-
-            @Override
-            public void onFailure(Call<OrderResponse> call, Throwable t) {
-                loadingLiveData.setValue(false);
-                String errorMsg = "Lỗi kết nối khi lọc theo trạng thái: " + t.getMessage();
-                errorLiveData.setValue(errorMsg);
-            }
-        });
-    }
-
-    // NEW: Fetch orders by status with pagination
-    public void fetchOrdersByStatusWithPagination(String status, int page, int pageSize) {
-        if (status == null || status.trim().isEmpty()) {
-            fetchOrdersWithPagination(page, pageSize);
-            return;
+        if (call != null) {
+            executeCall(call, "fetchOrdersByStatusDirect: " + status);
         }
-
-        loadingLiveData.setValue(true);
-        errorLiveData.setValue(null);
-
-        Call<OrderResponse> call = apiService.getOrdersByStatus(status, page, pageSize);
-        call.enqueue(new Callback<OrderResponse>() {
-            @Override
-            public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
-                loadingLiveData.setValue(false);
-
-                if (response.isSuccessful() && response.body() != null) {
-                    List<Order> orders = response.body().getOrders();
-                    if (orders != null) {
-                        // Ensure all orders have properly initialized lists
-                        for (Order order : orders) {
-                            initializeOrderLists(order);
-                        }
-                        ordersLiveData.setValue(orders);
-                    } else {
-                        ordersLiveData.setValue(new ArrayList<>());
-                    }
-                    errorLiveData.setValue(null);
-                } else {
-                    String errorMsg = "Lỗi khi tải dữ liệu theo trạng thái: " + response.code();
-                    errorLiveData.setValue(errorMsg);
-                }
-            }
-
-            @Override
-            public void onFailure(Call<OrderResponse> call, Throwable t) {
-                loadingLiveData.setValue(false);
-                String errorMsg = "Lỗi kết nối khi lọc theo trạng thái: " + t.getMessage();
-                errorLiveData.setValue(errorMsg);
-            }
-        });
     }
 
-    public void updateOrderStatus(int orderId, String newStatus, OnUpdateStatusListener listener) {
-        if (newStatus == null || newStatus.trim().isEmpty()) {
-            if (listener != null) {
-                listener.onError("Trạng thái không hợp lệ");
-            }
-            return;
-        }
+    // ========== PATCH STATUS UPDATE METHODS ==========
 
-        UpdateOrderStatusRequest request = new UpdateOrderStatusRequest(newStatus);
-
-        Call<Order> call = apiService.updateOrderStatus(orderId, request);
-        call.enqueue(new Callback<Order>() {
-            @Override
-            public void onResponse(Call<Order> call, Response<Order> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    Order updatedOrder = response.body();
-
-                    // Ensure lists are initialized
-                    initializeOrderLists(updatedOrder);
-
-                    // Update local data
-                    updateLocalOrderStatus(orderId, updatedOrder);
-
-                    if (listener != null) {
-                        listener.onSuccess("Cập nhật trạng thái thành công");
-                    }
-                } else {
-                    String errorMsg = "Lỗi khi cập nhật: " + response.code();
-                    if (response.code() == 400) {
-                        errorMsg = "Trạng thái không hợp lệ";
-                    } else if (response.code() == 404) {
-                        errorMsg = "Không tìm thấy đơn hàng";
-                    }
-
-                    if (listener != null) {
-                        listener.onError(errorMsg);
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(Call<Order> call, Throwable t) {
-                String errorMsg = "Lỗi kết nối: " + t.getMessage();
-                if (listener != null) {
-                    listener.onError(errorMsg);
-                }
-            }
-        });
-    }
-
-    // PATCH: Update order status using PATCH endpoints
     public void patchOrderStatus(int orderId, String newStatus, OnUpdateStatusListener listener) {
         if (newStatus == null || newStatus.trim().isEmpty()) {
             if (listener != null) {
@@ -321,13 +159,71 @@ public class OrderRepository {
                     }
                 }
             }
-
             @Override
             public void onFailure(Call<Order> call, Throwable t) {
                 String errorMsg = "Lỗi kết nối: " + t.getMessage();
                 if (listener != null) {
                     listener.onError(errorMsg);
                 }
+            }
+        });
+    }
+
+    // ========== LEGACY METHODS (kept for backward compatibility) ==========
+
+    public void fetchOrders() {
+        fetchOrdersWithPagination(1, 20);
+    }
+
+    public void fetchOrdersWithPagination(int page, int pageSize) {
+        loadingLiveData.setValue(true);
+        errorLiveData.setValue(null);
+
+        Call<OrderResponse> call = apiService.getOrders(page, pageSize);
+        executeCall(call, "fetchOrdersWithPagination");
+    }
+
+    public void fetchOrdersByStatus(String status) {
+        fetchOrdersByStatusWithPagination(status, 1, 20);
+    }
+
+    public void fetchOrdersByStatusWithPagination(String status, int page, int pageSize) {
+        if (status == null || status.equals("all")) {
+            fetchOrdersWithPagination(page, pageSize);
+        } else {
+            // Use new direct status endpoints
+            fetchOrdersByStatusDirect(status, page, pageSize);
+        }
+    }
+
+    // ========== HELPER METHODS ==========
+
+    private void executeCall(Call<OrderResponse> call, String operation) {
+        call.enqueue(new Callback<OrderResponse>() {
+            @Override
+            public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
+                loadingLiveData.setValue(false);
+
+                if (response.isSuccessful() && response.body() != null) {
+                    OrderResponse orderResponse = response.body();
+                    List<Order> orders = orderResponse.getOrders();
+
+                    Log.d(TAG, operation + " success: " + (orders != null ? orders.size() : 0) + " orders");
+                    ordersLiveData.setValue(orders);
+                    errorLiveData.setValue(null);
+                } else {
+                    String errorMsg = "Lỗi tải dữ liệu: " + response.code();
+                    Log.e(TAG, operation + " error: " + errorMsg);
+                    errorLiveData.setValue(errorMsg);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<OrderResponse> call, Throwable t) {
+                loadingLiveData.setValue(false);
+                String errorMsg = "Lỗi kết nối: " + t.getMessage();
+                Log.e(TAG, operation + " failure: " + errorMsg, t);
+                errorLiveData.setValue(errorMsg);
             }
         });
     }
@@ -431,6 +327,7 @@ public class OrderRepository {
         void onStatisticsLoaded(OrderStatistics statistics);
     }
 
+    // Interface for status update callbacks
     public interface OnUpdateStatusListener {
         void onSuccess(String message);
         void onError(String error);

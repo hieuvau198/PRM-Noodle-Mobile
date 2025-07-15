@@ -34,31 +34,13 @@ public class OrderViewModel extends ViewModel {
         return statusMessage;
     }
 
-    // ORIGINAL METHODS (keep for backward compatibility)
-    public void loadOrders() {
-        orderRepository.fetchOrders();
+    // ========== NEW STATUS-SPECIFIC METHODS ==========
+
+    public void loadOrdersByStatusDirect(String status, int page, int pageSize) {
+        orderRepository.fetchOrdersByStatusDirect(status, page, pageSize);
     }
 
-    public void loadOrdersByStatus(String status) {
-        if (status == null || status.equals("all")) {
-            orderRepository.fetchOrders();
-        } else {
-            orderRepository.fetchOrdersByStatus(status);
-        }
-    }
-
-    // NEW PAGINATION METHODS
-    public void loadOrdersWithPagination(int page, int pageSize) {
-        orderRepository.fetchOrdersWithPagination(page, pageSize);
-    }
-
-    public void loadOrdersByStatusWithPagination(String status, int page, int pageSize) {
-        if (status == null || status.equals("all")) {
-            orderRepository.fetchOrdersWithPagination(page, pageSize);
-        } else {
-            orderRepository.fetchOrdersByStatusWithPagination(status, page, pageSize);
-        }
-    }
+    // ========== ENHANCED STATUS UPDATE ==========
 
     public void updateOrderStatus(int orderId, String newStatus) {
         orderRepository.patchOrderStatus(orderId, newStatus, new OrderRepository.OnUpdateStatusListener() {
@@ -72,6 +54,54 @@ public class OrderViewModel extends ViewModel {
                 statusMessage.postValue(error);
             }
         });
+    }
+
+    // Specific status update methods for better code organization
+    public void confirmOrder(int orderId) {
+        updateOrderStatus(orderId, "confirmed");
+    }
+
+    public void prepareOrder(int orderId) {
+        updateOrderStatus(orderId, "preparing");
+    }
+
+    public void deliverOrder(int orderId) {
+        updateOrderStatus(orderId, "delivered");
+    }
+
+    public void completeOrder(int orderId) {
+        updateOrderStatus(orderId, "completed");
+    }
+
+    public void cancelOrder(int orderId) {
+        updateOrderStatus(orderId, "cancelled");
+    }
+
+    // ========== LEGACY METHODS (keep for backward compatibility) ==========
+
+    public void loadOrders() {
+        orderRepository.fetchOrders();
+    }
+
+    public void loadOrdersByStatus(String status) {
+        if (status == null || status.equals("all")) {
+            orderRepository.fetchOrders();
+        } else {
+            orderRepository.fetchOrdersByStatus(status);
+        }
+    }
+
+    public void loadOrdersWithPagination(int page, int pageSize) {
+        orderRepository.fetchOrdersWithPagination(page, pageSize);
+    }
+
+    public void loadOrdersByStatusWithPagination(String status, int page, int pageSize) {
+        if (status == null || status.equals("all")) {
+            orderRepository.fetchOrdersWithPagination(page, pageSize);
+        } else {
+            // Use new direct status method for better performance
+            orderRepository.fetchOrdersByStatusDirect(status, page, pageSize);
+        }
     }
 
     public void refreshOrders() {

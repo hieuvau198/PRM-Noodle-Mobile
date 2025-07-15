@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel;
 
 import com.example.prm_v3.api.ApiClient;
 import com.example.prm_v3.api.ApiService;
-import com.example.prm_v3.api.UpdateOrderStatusRequest;
 import com.example.prm_v3.model.Order;
 
 import retrofit2.Call;
@@ -89,42 +88,31 @@ public class OrderDetailViewModel extends ViewModel {
         });
     }
 
-    public void updateOrderStatus(int orderId, String newStatus) {
-        if (newStatus == null || newStatus.trim().isEmpty()) {
-            statusMessage.setValue("Trạng thái không hợp lệ");
-            return;
-        }
+    // ========== NEW PATCH-BASED STATUS UPDATE METHODS ==========
 
-        // Validate status
-        if (!isValidStatus(newStatus)) {
-            statusMessage.setValue("Trạng thái không hợp lệ: " + newStatus);
-            return;
-        }
+    public void confirmOrder(int orderId) {
+        updateOrderStatusPatch(orderId, "confirmed", apiService.confirmOrder(orderId));
+    }
 
-        Call<Order> call = null;
-        switch (newStatus.toLowerCase()) {
-            case "confirmed":
-                call = apiService.confirmOrder(orderId);
-                break;
-            case "preparing":
-                call = apiService.prepareOrder(orderId);
-                break;
-            case "delivered":
-                call = apiService.deliverOrder(orderId);
-                break;
-            case "completed":
-                call = apiService.completeOrder(orderId);
-                break;
-            case "cancelled":
-                call = apiService.cancelOrder(orderId);
-                break;
-            default:
-                statusMessage.setValue("Trạng thái không hợp lệ hoặc không hỗ trợ PATCH: " + newStatus);
-                return;
-        }
+    public void prepareOrder(int orderId) {
+        updateOrderStatusPatch(orderId, "preparing", apiService.prepareOrder(orderId));
+    }
 
+    public void deliverOrder(int orderId) {
+        updateOrderStatusPatch(orderId, "delivered", apiService.deliverOrder(orderId));
+    }
+
+    public void completeOrder(int orderId) {
+        updateOrderStatusPatch(orderId, "completed", apiService.completeOrder(orderId));
+    }
+
+    public void cancelOrder(int orderId) {
+        updateOrderStatusPatch(orderId, "cancelled", apiService.cancelOrder(orderId));
+    }
+
+    private void updateOrderStatusPatch(int orderId, String statusName, Call<Order> call) {
         if (call == null) {
-            statusMessage.setValue("Không thể tạo request PATCH cho trạng thái: " + newStatus);
+            statusMessage.setValue("Không thể tạo request cho trạng thái: " + statusName);
             return;
         }
 
@@ -144,7 +132,7 @@ public class OrderDetailViewModel extends ViewModel {
 
                     order.setValue(updatedOrder);
                     statusMessage.setValue("Cập nhật trạng thái thành công");
-                    // Reload order detail after status update
+                    // Reload order detail after status update to ensure data consistency
                     loadOrderDetail(orderId);
                 } else {
                     String errorMsg = "Lỗi khi cập nhật trạng thái";
@@ -170,6 +158,44 @@ public class OrderDetailViewModel extends ViewModel {
         });
     }
 
+    // ========== LEGACY METHOD (deprecated - use specific methods above) ==========
+
+    @Deprecated
+    public void updateOrderStatus(int orderId, String newStatus) {
+        if (newStatus == null || newStatus.trim().isEmpty()) {
+            statusMessage.setValue("Trạng thái không hợp lệ");
+            return;
+        }
+
+        // Validate status
+        if (!isValidStatus(newStatus)) {
+            statusMessage.setValue("Trạng thái không hợp lệ: " + newStatus);
+            return;
+        }
+
+        // Route to appropriate PATCH method
+        switch (newStatus.toLowerCase()) {
+            case "confirmed":
+                confirmOrder(orderId);
+                break;
+            case "preparing":
+                prepareOrder(orderId);
+                break;
+            case "delivered":
+                deliverOrder(orderId);
+                break;
+            case "completed":
+                completeOrder(orderId);
+                break;
+            case "cancelled":
+                cancelOrder(orderId);
+                break;
+            default:
+                statusMessage.setValue("Trạng thái không hợp lệ hoặc không hỗ trợ: " + newStatus);
+                break;
+        }
+    }
+
     private boolean isValidStatus(String status) {
         switch (status.toLowerCase()) {
             case "pending":
@@ -181,25 +207,6 @@ public class OrderDetailViewModel extends ViewModel {
                 return true;
             default:
                 return false;
-        }
-    }
-
-    private UpdateOrderStatusRequest createStatusRequest(String newStatus) {
-        switch (newStatus.toLowerCase()) {
-            case "pending":
-                return UpdateOrderStatusRequest.pending();
-            case "confirmed":
-                return UpdateOrderStatusRequest.confirmed();
-            case "preparing":
-                return UpdateOrderStatusRequest.preparing();
-            case "delivered":
-                return UpdateOrderStatusRequest.delivered();
-            case "completed":
-                return UpdateOrderStatusRequest.completed();
-            case "cancelled":
-                return UpdateOrderStatusRequest.cancelled();
-            default:
-                return null;
         }
     }
 
