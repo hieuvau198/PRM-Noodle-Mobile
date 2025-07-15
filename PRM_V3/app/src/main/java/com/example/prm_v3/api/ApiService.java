@@ -8,6 +8,7 @@ import com.example.prm_v3.model.Topping;
 import com.example.prm_v3.model.Login;
 import com.example.prm_v3.api.AuthResponse;
 import com.example.prm_v3.model.User;
+import com.example.prm_v3.model.Payment;
 
 import java.util.List;
 
@@ -104,4 +105,11 @@ public interface ApiService {
 
     @POST("api/Auth/change-password")
     Call<ApiResponse> changePassword(@Body ChangePasswordRequest request);
+
+    // Payment APIs
+    @POST("api/Payments")
+    Call<Payment> createPayment(@Body Payment payment);
+
+    @GET("api/Payments")
+    Call<List<Payment>> getPayments();
 }

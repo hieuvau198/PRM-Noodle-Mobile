@@ -64,10 +64,12 @@ public class LoginActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     AuthResponse auth = response.body();
 
-                    // Lưu token vào SharedPreferences
+                    // Lưu token vào SharedPreferences (token + thời điểm hết hạn)
+                    long expiryMillis = System.currentTimeMillis() + 2 * 60 * 60 * 1000; // 2 tiếng
                     getSharedPreferences("app_prefs", MODE_PRIVATE)
                             .edit()
                             .putString("token", auth.getToken())
+                            .putLong("token_expiry", expiryMillis)
                             .apply();
 
                     // ✅ Thông báo đăng nhập thành công

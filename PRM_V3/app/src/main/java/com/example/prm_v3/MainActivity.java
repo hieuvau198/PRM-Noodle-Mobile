@@ -27,6 +27,12 @@ public class MainActivity extends AppCompatActivity {
         // Kiểm tra token, nếu chưa đăng nhập thì chuyển sang LoginActivity
         SharedPreferences prefs = getSharedPreferences("app_prefs", MODE_PRIVATE);
         String token = prefs.getString("token", null);
+        long expiry = prefs.getLong("token_expiry", 0);
+        if (expiry > 0 && System.currentTimeMillis() > expiry) {
+            // Token hết hạn, xóa token và bắt đăng nhập lại
+            prefs.edit().remove("token").remove("token_expiry").apply();
+            token = null;
+        }
         if (token == null || token.isEmpty()) {
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
