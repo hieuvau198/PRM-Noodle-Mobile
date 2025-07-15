@@ -26,23 +26,15 @@
                     android:id="@+id/iv_avatar"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:src="@drawable/ic_user"
-                    android:padding="8dp"
                     android:background="@drawable/rounded_image_bg"
+                    android:contentDescription="Avatar"
+                    android:padding="8dp"
                     android:scaleType="centerCrop"
-                    android:contentDescription="Avatar" />
+                    android:src="@drawable/user" />
 
                 <!-- Edit button -->
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/fab_edit_profile"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="end|bottom"
-                    android:src="@drawable/ic_edit"
-                    app:fabSize="mini"
-                    app:backgroundTint="@color/white"
-                    app:tint="@color/black" />
             </FrameLayout>
+
         </FrameLayout>
 
         <!-- Info Card -->
@@ -61,62 +53,77 @@
                 android:orientation="vertical"
                 android:padding="20dp">
 
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/fab_edit_profile"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end|bottom"
+                    android:src="@drawable/ic_edit"
+                    app:backgroundTint="@color/white"
+                    app:fabSize="mini"
+                    app:tint="@color/black" />
+
                 <TextView
                     android:id="@+id/tv_full_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Họ và tên"
                     android:textAlignment="center"
+                    android:textColor="@color/text_primary"
                     android:textSize="24sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/text_primary"/>
+                    android:textStyle="bold" />
 
                 <!-- Thông tin chi tiết -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginTop="16dp">
+                    android:layout_marginTop="16dp"
+                    android:orientation="vertical">
 
                     <TextView
                         style="@style/ProfileInfoLabel"
-                        android:text="Tên đăng nhập"/>
+                        android:text="Tên đăng nhập" />
+
                     <TextView
                         android:id="@+id/tv_username"
                         style="@style/ProfileInfoValue"
-                        android:text="username"/>
+                        android:text="username" />
 
                     <TextView
                         style="@style/ProfileInfoLabel"
-                        android:text="Email"/>
+                        android:text="Email" />
+
                     <TextView
                         android:id="@+id/tv_email"
                         style="@style/ProfileInfoValue"
-                        android:text="email@example.com"/>
+                        android:text="email@example.com" />
 
                     <TextView
                         style="@style/ProfileInfoLabel"
-                        android:text="Số điện thoại"/>
+                        android:text="Số điện thoại" />
+
                     <TextView
                         android:id="@+id/tv_phone"
                         style="@style/ProfileInfoValue"
-                        android:text="+84 xxx xxx xxx"/>
+                        android:text="+84 xxx xxx xxx" />
 
                     <TextView
                         style="@style/ProfileInfoLabel"
-                        android:text="Địa chỉ"/>
+                        android:text="Địa chỉ" />
+
                     <TextView
                         android:id="@+id/tv_address"
                         style="@style/ProfileInfoValue"
-                        android:text="Địa chỉ của bạn"/>
+                        android:text="Địa chỉ của bạn" />
 
                     <TextView
                         style="@style/ProfileInfoLabel"
-                        android:text="Vai trò"/>
+                        android:text="Vai trò" />
+
                     <TextView
                         android:id="@+id/tv_role"
                         style="@style/ProfileInfoValue"
-                        android:text="Khách hàng"/>
+                        android:text="Khách hàng" />
                 </LinearLayout>
             </LinearLayout>
         </androidx.cardview.widget.CardView>

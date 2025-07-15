@@ -49,6 +49,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import java.util.UUID;
+import android.os.Handler;
 
 public class HomeFragment extends Fragment implements HomeContract.View {
 
@@ -58,6 +59,24 @@ public class HomeFragment extends Fragment implements HomeContract.View {
     private TextView tvUsernameHome;
     private ImageButton btnLogoutHome;
     private FloatingActionButton fabChatbot;
+
+    private Handler sliderHandler = new Handler();
+    private Runnable sliderRunnable = new Runnable() {
+        @Override
+        public void run() {
+            ViewPager2 viewPager = getView().findViewById(R.id.view_pager_banners);
+            if (viewPager != null) {
+                if (viewPager.getCurrentItem() == bannerAdapter.getItemCount() - 1) {
+                    viewPager.setCurrentItem(0, true); // true để có animation
+                } else {
+                    viewPager.setCurrentItem(viewPager.getCurrentItem() + 1, true);
+                }
+            }
+            sliderHandler.postDelayed(this, 3000); // Tự động gọi lại sau 3 giây
+        }
+    };
+
+    private BannerAdapter bannerAdapter;
 
     @Nullable
     @Override
@@ -106,9 +125,55 @@ public class HomeFragment extends Fragment implements HomeContract.View {
         banners.add(new Banner(R.drawable.banner_1, "Khám phá ẩm thực Hàn Quốc\nMì Cay Seoul"));
         banners.add(new Banner(R.drawable.banner_2, "Đặt hàng ngay\nGiảm 20% cho đơn từ 200K"));
         banners.add(new Banner(R.drawable.banner_3, "Combo mì cay 2 người\nChỉ từ 150K"));
+        banners.add(new Banner(R.drawable.banner_4, "Topping đa dạng\nThêm vào mì cay theo ý thích"));
+        banners.add(new Banner(R.drawable.banner_5, "Ưu đãi đặc biệt mỗi thứ 6\nTặng nước miễn phí cho mọi đơn!"));
 
-        BannerAdapter bannerAdapter = new BannerAdapter(banners);
+        bannerAdapter = new BannerAdapter(banners);
         viewPager.setAdapter(bannerAdapter);
+        
+        // Set page transformer for smooth transition
+        viewPager.setPageTransformer((page, position) -> {
+            float r = 1 - Math.abs(position);
+            page.setScaleY(0.85f + r * 0.15f);
+        });
+
+        // Enable infinite scrolling
+        viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                sliderHandler.removeCallbacks(sliderRunnable);
+                sliderHandler.postDelayed(sliderRunnable, 3000);
+            }
+        });
+
+        // Start auto sliding
+        sliderHandler.postDelayed(sliderRunnable, 3000);
+
+        // Search
+        EditText etSearch = view.findViewById(R.id.et_search);
+        etSearch.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(android.text.Editable s) {
+                performSearch(s.toString());
+            }
+        });
+
+        // Thêm nút xóa text tìm kiếm khi focus
+        etSearch.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus && etSearch.getText().toString().isEmpty()) {
+                // Reset lại danh sách sản phẩm khi focus vào ô tìm kiếm
+                if (presenter != null) {
+                    presenter.loadFeaturedProducts();
+                }
+            }
+        });
 
         return view;
     }
@@ -158,6 +223,28 @@ public class HomeFragment extends Fragment implements HomeContract.View {
             sharedPreferences.edit().putString("chatbotSessionId", uuid).apply();
         }
         return uuid;
+    }
+
+    private void performSearch(String query) {
+        if (presenter != null) {
+            // Chuyển query về chữ thường để tìm kiếm không phân biệt hoa thường
+            query = query.toLowerCase().trim();
+            List<Product> allProducts = bestSellerAdapter.getProducts();
+            List<Product> filteredProducts = new ArrayList<>();
+            
+            for (Product product : allProducts) {
+                // Tìm theo tên hoặc mô tả sản phẩm
+                if (product.getProductName().toLowerCase().contains(query) ||
+                    (product.getDescription() != null && 
+                     product.getDescription().toLowerCase().contains(query))) {
+                    filteredProducts.add(product);
+                }
+            }
+            
+            // Cập nhật RecyclerView với kết quả tìm kiếm
+            bestSellerAdapter.setProducts(filteredProducts);
+            bestSellerAdapter.notifyDataSetChanged();
+        }
     }
 
     private void showChatbotDialog() {
@@ -211,5 +298,17 @@ public class HomeFragment extends Fragment implements HomeContract.View {
             });
         });
         dialog.show();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        sliderHandler.removeCallbacks(sliderRunnable);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        sliderHandler.postDelayed(sliderRunnable, 3000);
     }
 }

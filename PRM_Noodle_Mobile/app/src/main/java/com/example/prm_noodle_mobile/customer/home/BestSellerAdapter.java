@@ -77,6 +77,10 @@ public class BestSellerAdapter extends RecyclerView.Adapter<BestSellerAdapter.Be
         this.products.addAll(products);
     }
 
+    public List<Product> getProducts() {
+        return products;
+    }
+
     static class BestSellerViewHolder extends RecyclerView.ViewHolder {
         ImageView productImage;
         TextView productName, productDescription, productPrice, badgeBestSeller;
