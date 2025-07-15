@@ -1,12 +1,22 @@
 package com.example.prm_noodle_mobile.data.model;
 
+import com.google.gson.annotations.SerializedName;
+
 public class UserProfile {
+    @SerializedName("userId")
     private int userId;
+    @SerializedName("username")
     private String username;
+    @SerializedName("email")
     private String email;
+    @SerializedName("fullName")
     private String fullName;
+    @SerializedName("phone")
     private String phone;
+    @SerializedName("address")
     private String address;
+    @SerializedName("role")
+    private String role;
 
     public UserProfile(int userId, String username, String email, String fullName, String phone, String address, String role) {
         this.userId = userId;
@@ -46,7 +56,7 @@ public class UserProfile {
         this.role = role;
     }
 
-    private String role;
+
 
     // Getter & Setter
     public int getUserId() { return userId; }
