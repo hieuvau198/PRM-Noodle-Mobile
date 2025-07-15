@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -18,7 +19,7 @@ import com.squareup.picasso.Picasso;
 import android.app.Dialog;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.widget.Button;
+import com.google.android.material.button.MaterialButton;
 import android.widget.Toast;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import com.bumptech.glide.Glide;
@@ -118,31 +119,41 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
             Dialog dialog = new Dialog(context);
             dialog.setContentView(R.layout.dialog_select_product_topping);
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
             ImageView img = dialog.findViewById(R.id.dialog_product_image);
             TextView name = dialog.findViewById(R.id.dialog_product_name);
             TextView price = dialog.findViewById(R.id.dialog_product_price);
             TextView desc = dialog.findViewById(R.id.dialog_product_desc);
-            Button btnMinus = dialog.findViewById(R.id.dialog_btn_minus);
-            Button btnPlus = dialog.findViewById(R.id.dialog_btn_plus);
+            ImageButton btnMinus = dialog.findViewById(R.id.dialog_btn_minus);
+            ImageButton btnPlus = dialog.findViewById(R.id.dialog_btn_plus);
             TextView quantityView = dialog.findViewById(R.id.dialog_quantity);
             RecyclerView recyclerTopping = dialog.findViewById(R.id.dialog_recycler_topping);
-            Button btnAdd = dialog.findViewById(R.id.dialog_btn_add_to_cart);
-            Glide.with(context).load(product.getImageUrl()).placeholder(R.drawable.ic_noodle_placeholder).into(img);
+            MaterialButton btnAdd = dialog.findViewById(R.id.dialog_btn_add_to_cart);
+
+            Glide.with(context)
+                .load(product.getImageUrl())
+                .placeholder(R.drawable.ic_noodle_placeholder)
+                .into(img);
+
             name.setText(product.getProductName());
-            price.setText(String.format("%,dđ", product.getBasePrice()));
+            price.setText(String.format("%,d₫", product.getBasePrice()));
             desc.setText(product.getDescription());
+
             final int[] quantity = {1};
             quantityView.setText("1");
+
             btnMinus.setOnClickListener(v -> {
                 if (quantity[0] > 1) {
                     quantity[0]--;
                     quantityView.setText(String.valueOf(quantity[0]));
                 }
             });
+
             btnPlus.setOnClickListener(v -> {
                 quantity[0]++;
                 quantityView.setText(String.valueOf(quantity[0]));
             });
+
             ArrayList<Topping> selectedToppings = new ArrayList<>();
             ToppingDialogAdapter toppingAdapter = new ToppingDialogAdapter(toppingList, selectedToppings);
             recyclerTopping.setLayoutManager(new LinearLayoutManager(context));

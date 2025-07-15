@@ -1,93 +1,137 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:background="@android:color/white">
+    android:background="@drawable/bottom_sheet_background">
 
     <ImageView
         android:id="@+id/dialog_product_image"
         android:layout_width="match_parent"
-        android:layout_height="180dp"
+        android:layout_height="200dp"
         android:scaleType="centerCrop"
         android:src="@drawable/ic_noodle_placeholder" />
-
-    <TextView
-        android:id="@+id/dialog_product_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Tên sản phẩm"
-        android:textStyle="bold"
-        android:textSize="18sp"
-        android:layout_marginTop="8dp" />
-
-    <TextView
-        android:id="@+id/dialog_product_price"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="50.000đ"
-        android:textColor="@color/primary"
-        android:textSize="16sp"
-        android:layout_marginTop="4dp" />
-
-    <TextView
-        android:id="@+id/dialog_product_desc"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Mô tả sản phẩm"
-        android:textSize="14sp"
-        android:layout_marginTop="4dp" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginTop="12dp">
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:layout_weight="1">
+
         <TextView
-            android:layout_width="wrap_content"
+            android:id="@+id/dialog_product_name"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Số lượng: "
-            android:textSize="16sp" />
-        <Button
-            android:id="@+id/dialog_btn_minus"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:text="-" />
+            android:text="Mì Kim Chi Bò"
+            android:textColor="#000000"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:gravity="center" />
+
         <TextView
-            android:id="@+id/dialog_quantity"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:id="@+id/dialog_product_price"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="55,000₫"
+            android:textColor="@color/primary"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:gravity="center" />
+
+        <TextView
+            android:id="@+id/dialog_product_desc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Mì cay kim chi với thịt bò thái lát mềm ngon"
+            android:textSize="16sp"
             android:gravity="center"
-            android:text="1"
-            android:textSize="16sp" />
+            android:textColor="#666666" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="16dp"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Số lượng:"
+                android:textColor="#000000"
+                android:textSize="16sp"/>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_marginStart="16dp"
+                android:background="@drawable/quantity_background"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <ImageButton
+                    android:id="@+id/dialog_btn_minus"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/ic_remove"
+                    android:background="@drawable/quantity_background"
+                    android:contentDescription="Giảm số lượng"/>
+
+                <TextView
+                    android:id="@+id/dialog_quantity"
+                    android:layout_width="50dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="1"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#000000"/>
+
+                <ImageButton
+                    android:id="@+id/dialog_btn_plus"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/ic_add"
+                    android:background="@drawable/quantity_background"
+                    android:contentDescription="Tăng số lượng"/>
+
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Chọn topping (nếu có)"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:textColor="#000000"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/dialog_recycler_topping"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginTop="8dp"
+            android:minHeight="120dp"
+            android:maxHeight="250dp"
+            android:nestedScrollingEnabled="true"/>
+
         <Button
-            android:id="@+id/dialog_btn_plus"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:text="+" />
+            android:id="@+id/dialog_btn_add_to_cart"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Thêm vào giỏ hàng"
+            android:textSize="16sp"
+            android:padding="12dp"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="@color/primary"/>
+
     </LinearLayout>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Chọn topping (nếu có)"
-        android:textStyle="bold"
-        android:textSize="16sp"
-        android:layout_marginTop="12dp" />
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/dialog_recycler_topping"
-        android:layout_width="match_parent"
-        android:layout_height="120dp"
-        android:nestedScrollingEnabled="false" />
-
-    <Button
-        android:id="@+id/dialog_btn_add_to_cart"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Thêm vào giỏ hàng"
-        android:layout_marginTop="16dp"
-        android:backgroundTint="@color/primary"
-        android:textColor="@android:color/white" />
-</LinearLayout> 
+</LinearLayout>
