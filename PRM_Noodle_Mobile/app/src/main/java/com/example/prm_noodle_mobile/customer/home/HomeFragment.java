@@ -9,6 +9,9 @@ import android.widget.ImageButton;
 import android.content.SharedPreferences;
 import android.content.Intent;
 import android.widget.Toast;
+
+import com.example.prm_noodle_mobile.adapter.BannerAdapter;
+import com.example.prm_noodle_mobile.model.Banner;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import android.app.AlertDialog;
 import android.widget.EditText;
@@ -26,6 +29,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.prm_noodle_mobile.R;
 import com.example.prm_noodle_mobile.data.model.Product;
@@ -95,6 +99,16 @@ public class HomeFragment extends Fragment implements HomeContract.View {
 
         fabChatbot = view.findViewById(R.id.fab_chatbot);
         fabChatbot.setOnClickListener(v -> showChatbotDialog());
+
+        // Banner
+        ViewPager2 viewPager = view.findViewById(R.id.view_pager_banners);
+        List<Banner> banners = new ArrayList<>();
+        banners.add(new Banner(R.drawable.banner_1, "Khám phá ẩm thực Hàn Quốc\nMì Cay Seoul"));
+        banners.add(new Banner(R.drawable.banner_2, "Đặt hàng ngay\nGiảm 20% cho đơn từ 200K"));
+        banners.add(new Banner(R.drawable.banner_3, "Combo mì cay 2 người\nChỉ từ 150K"));
+
+        BannerAdapter bannerAdapter = new BannerAdapter(banners);
+        viewPager.setAdapter(bannerAdapter);
 
         return view;
     }
