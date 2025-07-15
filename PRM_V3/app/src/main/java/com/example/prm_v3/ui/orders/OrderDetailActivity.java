@@ -208,13 +208,23 @@ public class OrderDetailActivity extends AppCompatActivity {
                 break;
 
             case "confirmed":
+                binding.btnUpdateStatus.setVisibility(View.VISIBLE);
+                binding.btnCancelOrder.setVisibility(View.VISIBLE);
+                binding.btnUpdateStatus.setText("Bắt đầu chuẩn bị");
+                break;
+
             case "preparing":
                 binding.btnUpdateStatus.setVisibility(View.VISIBLE);
-                binding.btnCancelOrder.setVisibility(View.GONE);
-                binding.btnUpdateStatus.setText(status.equals("confirmed") ? "Bắt đầu chuẩn bị" : "Giao hàng");
+                binding.btnCancelOrder.setVisibility(View.VISIBLE);
+                binding.btnUpdateStatus.setText("Giao hàng");
                 break;
 
             case "delivered":
+                binding.btnUpdateStatus.setVisibility(View.VISIBLE);
+                binding.btnCancelOrder.setVisibility(View.GONE);
+                binding.btnUpdateStatus.setText("Hoàn thành");
+                break;
+
             case "completed":
             case "cancelled":
                 binding.btnUpdateStatus.setVisibility(View.GONE);

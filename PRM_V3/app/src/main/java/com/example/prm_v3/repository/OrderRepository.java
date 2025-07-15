@@ -302,10 +302,6 @@ public class OrderRepository {
                     Order updatedOrder = response.body();
                     initializeOrderLists(updatedOrder);
                     updateLocalOrderStatus(orderId, updatedOrder);
-                    // Nếu xác nhận đơn hàng thành công thì tạo payment
-                    if (newStatus.equalsIgnoreCase("confirmed")) {
-                        createPaymentFromOrder(updatedOrder, listener);
-                    }
                     if (listener != null) {
                         listener.onSuccess("Cập nhật trạng thái thành công");
                     }
@@ -327,36 +323,6 @@ public class OrderRepository {
                 String errorMsg = "Lỗi kết nối: " + t.getMessage();
                 if (listener != null) {
                     listener.onError(errorMsg);
-                }
-            }
-        });
-    }
-
-    // Tạo payment mới từ order đã xác nhận, truyền callback để UI reload
-    private void createPaymentFromOrder(Order order, OnUpdateStatusListener listener) {
-        if (order == null) return;
-        com.example.prm_v3.model.Payment payment = new com.example.prm_v3.model.Payment();
-        payment.setOrderId(order.getOrderId());
-        payment.setCustomerUserId(order.getUserId());
-        payment.setCustomerName(order.getUserName());
-        payment.setPaymentAmount(order.getTotalAmount());
-        payment.setPaymentMethod(order.getPaymentMethod());
-        payment.setPaymentStatus("pending"); // Khi mới tạo payment
-        apiService.createPayment(payment).enqueue(new retrofit2.Callback<com.example.prm_v3.model.Payment>() {
-            @Override
-            public void onResponse(Call<com.example.prm_v3.model.Payment> call, retrofit2.Response<com.example.prm_v3.model.Payment> response) {
-                if (listener != null) {
-                    if (response.isSuccessful() && response.body() != null) {
-                        listener.onPaymentCreated(true, "Tạo payment thành công");
-                    } else {
-                        listener.onPaymentCreated(false, "Tạo payment thất bại: " + response.code());
-                    }
-                }
-            }
-            @Override
-            public void onFailure(Call<com.example.prm_v3.model.Payment> call, Throwable t) {
-                if (listener != null) {
-                    listener.onPaymentCreated(false, "Lỗi tạo payment: " + t.getMessage());
                 }
             }
         });
@@ -434,6 +400,5 @@ public class OrderRepository {
     public interface OnUpdateStatusListener {
         void onSuccess(String message);
         void onError(String error);
-        default void onPaymentCreated(boolean success, String message) {}
     }
 }
