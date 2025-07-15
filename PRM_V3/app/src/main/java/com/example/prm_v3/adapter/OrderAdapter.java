@@ -216,26 +216,14 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
                     break;
 
                 case "confirmed":
-                    btnConfirmOrder.setVisibility(View.VISIBLE);
-                    btnCancelOrder.setVisibility(View.VISIBLE);
-                    btnConfirmOrder.setText("Chuẩn bị");
-                    setupButtonClickListeners(order);
-                    break;
-
                 case "preparing":
                     btnConfirmOrder.setVisibility(View.VISIBLE);
-                    btnCancelOrder.setVisibility(View.VISIBLE);
-                    btnConfirmOrder.setText("Giao hàng");
+                    btnCancelOrder.setVisibility(View.GONE);
+                    btnConfirmOrder.setText(status.equalsIgnoreCase("confirmed") ? "Chuẩn bị" : "Giao hàng");
                     setupButtonClickListeners(order);
                     break;
 
                 case "delivered":
-                    btnConfirmOrder.setVisibility(View.VISIBLE);
-                    btnCancelOrder.setVisibility(View.GONE);
-                    btnConfirmOrder.setText("Hoàn thành");
-                    setupButtonClickListeners(order);
-                    break;
-
                 case "completed":
                 case "cancelled":
                     btnConfirmOrder.setVisibility(View.GONE);
