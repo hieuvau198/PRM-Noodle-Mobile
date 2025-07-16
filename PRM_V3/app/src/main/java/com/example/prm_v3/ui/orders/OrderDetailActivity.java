@@ -3,6 +3,7 @@ package com.example.prm_v3.ui.orders;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
@@ -111,8 +112,11 @@ public class OrderDetailActivity extends AppCompatActivity {
             Order order = viewModel.getOrder().getValue();
             if (order != null) {
                 String currentStatus = order.getOrderStatus();
-                // Use specific methods based on current status
-                switch (currentStatus) {
+
+                Log.d("OrderDetailActivity", "Current status: " + currentStatus);
+
+                // FIXED: Backend workflow mapping
+                switch (currentStatus.toLowerCase()) {
                     case "pending":
                         viewModel.confirmOrder(orderId);
                         break;
@@ -120,13 +124,15 @@ public class OrderDetailActivity extends AppCompatActivity {
                         viewModel.prepareOrder(orderId);
                         break;
                     case "preparing":
+                        // FIXED: preparing -> ready via deliverOrder API
                         viewModel.deliverOrder(orderId);
                         break;
-                    case "delivered":
+                    case "ready":
+                        // FIXED: ready -> delivered via completeOrder API
                         viewModel.completeOrder(orderId);
                         break;
                     default:
-                        Toast.makeText(this, "Không thể cập nhật trạng thái từ: " + currentStatus, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Không thể cập nhật từ trạng thái: " + currentStatus, Toast.LENGTH_SHORT).show();
                         break;
                 }
             }
@@ -215,7 +221,7 @@ public class OrderDetailActivity extends AppCompatActivity {
     }
 
     private void updateButtons(String status) {
-        switch (status) {
+        switch (status.toLowerCase()) {
             case "pending":
                 binding.btnUpdateStatus.setVisibility(View.VISIBLE);
                 binding.btnCancelOrder.setVisibility(View.VISIBLE);
@@ -231,23 +237,22 @@ public class OrderDetailActivity extends AppCompatActivity {
             case "preparing":
                 binding.btnUpdateStatus.setVisibility(View.VISIBLE);
                 binding.btnCancelOrder.setVisibility(View.VISIBLE);
-                binding.btnUpdateStatus.setText("Giao hàng");
+                binding.btnUpdateStatus.setText("Sẵn sàng giao");  // preparing -> ready
                 break;
 
-            case "delivered":
+            case "ready":
                 binding.btnUpdateStatus.setVisibility(View.VISIBLE);
                 binding.btnCancelOrder.setVisibility(View.GONE);
-                binding.btnUpdateStatus.setText("Hoàn thành");
+                binding.btnUpdateStatus.setText("Hoàn thành");     // ready -> delivered
                 break;
 
-            case "completed":
+            case "delivered":  // Final status
             case "cancelled":
                 binding.btnUpdateStatus.setVisibility(View.GONE);
                 binding.btnCancelOrder.setVisibility(View.GONE);
                 break;
         }
     }
-
     private int getStatusColor(String status) {
         switch (status) {
             case "pending": return getColor(R.color.orange_600);

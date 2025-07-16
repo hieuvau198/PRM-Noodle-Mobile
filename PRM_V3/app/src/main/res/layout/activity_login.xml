@@ -29,7 +29,7 @@
                 android:layout_height="64dp"
                 android:layout_gravity="center"
                 android:src="@drawable/ic_launcher_foreground"
-                android:tint="@android:color/white" />
+                app:tint="@android:color/white" />
         </FrameLayout>
 
         <!-- Title -->

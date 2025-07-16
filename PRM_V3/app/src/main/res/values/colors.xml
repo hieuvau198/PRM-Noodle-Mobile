@@ -13,8 +13,7 @@
     <color name="gray_400">#BDBDBD</color>
 
     <!-- Status Badge Colors -->
-
-    <color name="blue_100">#E3F2FD</color>
+    <color name="green_400">#388E3C</color>    <color name="blue_100">#E3F2FD</color>
     <color name="yellow_100">#FFFDE7</color>
     <color name="purple_100">#F3E5F5</color>
     <color name="green_100">#E8F5E8</color>

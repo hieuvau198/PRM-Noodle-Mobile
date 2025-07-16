@@ -23,17 +23,28 @@ import retrofit2.http.PATCH;
 
 public interface ApiService {
 
-    // ========== ORDER APIs ==========
+    // ========== NEW: DIRECT STATUS ENDPOINTS ==========
 
-    // Get all orders with pagination
-    @GET("api/order")
-    Call<OrderResponse> getOrders();
+    // Get orders by status using direct endpoints
+    @GET("api/order/pending")
+    Call<OrderResponse> getPendingOrders();
 
-    @GET("api/order")
-    Call<OrderResponse> getOrders(@Query("page") int page,
-                                  @Query("pageSize") int pageSize);
+    @GET("api/order/confirmed")
+    Call<OrderResponse> getConfirmedOrders();
 
-    // Get orders by status (NEW - theo ảnh 1)
+    @GET("api/order/preparing")
+    Call<OrderResponse> getPreparingOrders();
+
+    @GET("api/order/delivered")
+    Call<OrderResponse> getDeliveredOrders();
+
+    @GET("api/order/completed")
+    Call<OrderResponse> getCompletedOrders();
+
+    @GET("api/order/cancelled")
+    Call<OrderResponse> getCancelledOrders();
+
+    // With pagination support
     @GET("api/order/pending")
     Call<OrderResponse> getPendingOrders(@Query("page") int page,
                                          @Query("pageSize") int pageSize);
@@ -58,37 +69,49 @@ public interface ApiService {
     Call<OrderResponse> getCancelledOrders(@Query("page") int page,
                                            @Query("pageSize") int pageSize);
 
-    // Status update endpoints (NEW - theo ảnh 2)
-    @PATCH("api/order/{orderId}/confirm")
-    Call<Order> confirmOrder(@Path("orderId") int orderId);
+    // ========== EXISTING ORDER APIs ==========
 
-    @PATCH("api/order/{orderId}/complete")
-    Call<Order> completeOrder(@Path("orderId") int orderId);
+    // Get all orders with pagination
+    @GET("api/order")
+    Call<OrderResponse> getOrders();
 
-    @PATCH("api/order/{orderId}/prepare")
-    Call<Order> prepareOrder(@Path("orderId") int orderId);
+    @GET("api/order")
+    Call<OrderResponse> getOrders(@Query("page") int page,
+                                  @Query("pageSize") int pageSize);
 
-    @PATCH("api/order/{orderId}/deliver")
-    Call<Order> deliverOrder(@Path("orderId") int orderId);
-
-    @PATCH("api/order/{orderId}/cancel")
-    Call<Order> cancelOrder(@Path("orderId") int orderId);
-
-    // Legacy endpoints (giữ lại cho backward compatibility)
+    // Legacy API for filtering by status (keep for backward compatibility)
     @GET("api/order")
     Call<OrderResponse> getOrdersByStatus(@Query("status") String status,
                                           @Query("page") int page,
                                           @Query("pageSize") int pageSize);
 
-    @PUT("api/order/{orderId}/status")
-    Call<Order> updateOrderStatus(@Path("orderId") int orderId,
-                                  @Body UpdateOrderStatusRequest request);
+    // ========== PATCH Status Update Endpoints ==========
+    @PATCH("api/order/{orderId}/confirm")
+    Call<Order> confirmOrder(@Path("orderId") int orderId);
 
+    @PATCH("api/order/{orderId}/prepare")
+    Call<Order> prepareOrder(@Path("orderId") int orderId);
+
+    @PATCH("api/order/{orderId}/deliver")
+    Call<Order> deliverOrder(@Path("orderId") int orderId);  // preparing -> ready
+
+    @PATCH("api/order/{orderId}/complete")
+    Call<Order> completeOrder(@Path("orderId") int orderId); // ready -> delivered
+
+    @PATCH("api/order/{orderId}/cancel")
+    Call<Order> cancelOrder(@Path("orderId") int orderId);
+
+    // ========== OTHER ORDER APIs ==========
     @GET("api/order/{orderId}")
     Call<Order> getOrderById(@Path("orderId") int orderId);
 
     @POST("api/Order")
     Call<Order> createOrder(@Body CreateOrderRequest request);
+
+    // Legacy endpoint (deprecated)
+    @PUT("api/order/{orderId}/status")
+    Call<Order> updateOrderStatus(@Path("orderId") int orderId,
+                                  @Body UpdateOrderStatusRequest request);
 
     // ========== AUTH APIs ==========
     @POST("api/Auth/login")

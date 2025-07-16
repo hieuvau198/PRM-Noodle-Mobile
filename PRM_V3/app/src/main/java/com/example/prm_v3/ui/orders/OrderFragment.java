@@ -2,6 +2,8 @@ package com.example.prm_v3.ui.orders;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,6 +27,7 @@ import com.example.prm_v3.databinding.FragmentOrderBinding;
 import com.example.prm_v3.model.Order;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class OrderFragment extends Fragment implements OrderAdapter.OnOrderActionListener {
@@ -41,6 +44,10 @@ public class OrderFragment extends Fragment implements OrderAdapter.OnOrderActio
     private static final int PAGE_SIZE = 20;
     private boolean isLoading = false;
     private boolean isLastPage = false;
+
+    // Auto-refresh control
+    private Handler refreshHandler = new Handler(Looper.getMainLooper());
+    private boolean shouldAutoRefresh = true;
 
     // Tab views
     private TextView tabAll, tabPending, tabConfirmed, tabPreparing, tabDelivered, tabCompleted, tabCancelled;
@@ -62,7 +69,7 @@ public class OrderFragment extends Fragment implements OrderAdapter.OnOrderActio
         observeViewModel();
 
         // Load initial data
-        loadFirstPage();
+        loadFirstPageOptimized();
 
         return root;
     }
@@ -104,12 +111,11 @@ public class OrderFragment extends Fragment implements OrderAdapter.OnOrderActio
                     int totalItemCount = layoutManager.getItemCount();
                     int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
 
-                    // Check if we should load more data
                     if (!isLoading && !isLastPage) {
                         if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount
                                 && firstVisibleItemPosition >= 0
                                 && totalItemCount >= PAGE_SIZE) {
-                            loadNextPage();
+                            loadNextPageOptimized();
                         }
                     }
                 }
@@ -144,25 +150,29 @@ public class OrderFragment extends Fragment implements OrderAdapter.OnOrderActio
         isLastPage = false;
         allOrders.clear();
         orderAdapter.notifyDataSetChanged();
-        loadFirstPage();
+        loadFirstPageOptimized();
     }
 
-    private void loadFirstPage() {
-        Log.d(TAG, "loadFirstPage - currentFilter: " + currentFilter);
+    // ========== OPTIMIZED LOADING METHODS ==========
+
+    private void loadFirstPageOptimized() {
+        Log.d(TAG, "loadFirstPageOptimized - currentFilter: " + currentFilter);
         isLoading = true;
         currentPage = 1;
 
-        // Use the new direct status endpoints for better performance
-        orderViewModel.loadOrdersByStatusDirect(currentFilter, currentPage, PAGE_SIZE);
+        // Enable auto-refresh in repository
+        orderViewModel.enableAutoRefresh(true);
+
+        // Use direct endpoint method for optimal performance
+        orderViewModel.loadOrdersByDirectEndpoint(currentFilter, currentPage, PAGE_SIZE);
     }
 
-    private void loadNextPage() {
-        Log.d(TAG, "loadNextPage - page: " + (currentPage + 1));
+    private void loadNextPageOptimized() {
+        Log.d(TAG, "loadNextPageOptimized - page: " + (currentPage + 1));
         isLoading = true;
         currentPage++;
 
-        // Use the new direct status endpoints for pagination
-        orderViewModel.loadOrdersByStatusDirect(currentFilter, currentPage, PAGE_SIZE);
+        orderViewModel.loadOrdersByDirectEndpoint(currentFilter, currentPage, PAGE_SIZE);
     }
 
     private void updateTabAppearance() {
@@ -201,20 +211,6 @@ public class OrderFragment extends Fragment implements OrderAdapter.OnOrderActio
         }
     }
 
-    private void updateEmptyState(boolean isEmpty) {
-        Log.d(TAG, "updateEmptyState: isEmpty=" + isEmpty + ", currentPage=" + currentPage + ", allOrders.size=" + allOrders.size());
-
-        if (isEmpty && currentPage == 1) {
-            Log.d(TAG, "Showing empty state");
-            recyclerViewOrders.setVisibility(View.GONE);
-            layoutEmptyState.setVisibility(View.VISIBLE);
-        } else {
-            Log.d(TAG, "Showing recycler view");
-            recyclerViewOrders.setVisibility(View.VISIBLE);
-            layoutEmptyState.setVisibility(View.GONE);
-        }
-    }
-
     private void observeViewModel() {
         Log.d(TAG, "observeViewModel setup");
 
@@ -224,40 +220,46 @@ public class OrderFragment extends Fragment implements OrderAdapter.OnOrderActio
             isLoading = false;
             swipeRefreshLayout.setRefreshing(false);
 
-            if (orders != null && !orders.isEmpty()) {
+            if (orders != null) {
                 Log.d(TAG, "Processing " + orders.size() + " orders");
 
-                // ALWAYS update data regardless of page
+                // Update data
                 if (currentPage == 1) {
                     allOrders.clear();
                 }
-                allOrders.addAll(orders);
 
-                // FORCE UI update on main thread
+                if (!orders.isEmpty()) {
+                    allOrders.addAll(orders);
+                }
+
+                // Force UI update on main thread
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
-                        // Update adapter
                         orderAdapter.updateOrders(new ArrayList<>(allOrders));
 
-                        // Force show content
-                        recyclerViewOrders.setVisibility(View.VISIBLE);
-                        layoutEmptyState.setVisibility(View.GONE);
-                        progressBar.setVisibility(View.GONE);
+                        if (allOrders.isEmpty()) {
+                            recyclerViewOrders.setVisibility(View.GONE);
+                            layoutEmptyState.setVisibility(View.VISIBLE);
+                        } else {
+                            recyclerViewOrders.setVisibility(View.VISIBLE);
+                            layoutEmptyState.setVisibility(View.GONE);
+                        }
 
-                        Log.d(TAG, "UI updated - RecyclerView shown with " + allOrders.size() + " items");
+                        progressBar.setVisibility(View.GONE);
+                        Log.d(TAG, "UI updated - showing " + allOrders.size() + " items");
                     });
                 }
 
                 isLastPage = orders.size() < PAGE_SIZE;
-
             } else {
-                Log.d(TAG, "Empty or null orders received");
-                if (currentPage == 1 && allOrders.isEmpty()) {
-                    // Only show empty state if we truly have no data
+                Log.d(TAG, "Received null orders");
+                if (currentPage == 1) {
+                    allOrders.clear();
+                    orderAdapter.updateOrders(new ArrayList<>());
                     recyclerViewOrders.setVisibility(View.GONE);
                     layoutEmptyState.setVisibility(View.VISIBLE);
-                    progressBar.setVisibility(View.GONE);
                 }
+                progressBar.setVisibility(View.GONE);
             }
         });
 
@@ -283,20 +285,33 @@ public class OrderFragment extends Fragment implements OrderAdapter.OnOrderActio
             }
         });
 
+        // ENHANCED: Better status message handling with auto-refresh
         orderViewModel.getStatusMessage().observe(getViewLifecycleOwner(), message -> {
             if (message != null && !message.isEmpty()) {
                 Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
-                // Refresh data after status update
-                refreshDataComplete();
+
+                // Smart refresh: Don't refresh immediately, let repository handle it
+                Log.d(TAG, "Status update detected, repository will handle auto-refresh");
             }
         });
     }
 
+    // ========== ORDER ACTION HANDLERS WITH SMART UPDATE ==========
+
     @Override
     public void onConfirmOrder(Order order) {
-        String nextStatus = getNextStatus(order.getOrderStatus());
+        String currentStatus = order.getOrderStatus();
+        String nextStatus = getNextStatus(currentStatus);
+
+        Log.d(TAG, "onConfirmOrder: " + currentStatus + " -> " + nextStatus);
+
         if (nextStatus != null) {
-            // Use specific methods for better tracking
+            // Optimistic UI update: Remove order from current list immediately if it won't belong
+            if (shouldRemoveFromCurrentFilter(nextStatus)) {
+                removeOrderFromList(order.getOrderId());
+            }
+
+            // Update status
             switch (nextStatus) {
                 case "confirmed":
                     orderViewModel.confirmOrder(order.getOrderId());
@@ -304,10 +319,10 @@ public class OrderFragment extends Fragment implements OrderAdapter.OnOrderActio
                 case "preparing":
                     orderViewModel.prepareOrder(order.getOrderId());
                     break;
-                case "delivered":
+                case "ready":
                     orderViewModel.deliverOrder(order.getOrderId());
                     break;
-                case "completed":
+                case "delivered":
                     orderViewModel.completeOrder(order.getOrderId());
                     break;
                 default:
@@ -315,19 +330,18 @@ public class OrderFragment extends Fragment implements OrderAdapter.OnOrderActio
                     break;
             }
             Toast.makeText(getContext(), "Đang cập nhật trạng thái đơn hàng...", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    // RENAMED to avoid duplicate method error
-    public void refreshData() {
-        if (orderViewModel != null) {
-            Log.d(TAG, "refreshData called from external");
-            refreshDataComplete();
+        } else {
+            Toast.makeText(getContext(), "Không thể cập nhật từ trạng thái: " + currentStatus, Toast.LENGTH_SHORT).show();
         }
     }
 
     @Override
     public void onCancelOrder(Order order) {
+        // Optimistic UI update: Remove order from current list if not showing "all" or "cancelled"
+        if (!currentFilter.equals("all") && !currentFilter.equals("cancelled")) {
+            removeOrderFromList(order.getOrderId());
+        }
+
         orderViewModel.cancelOrder(order.getOrderId());
         Toast.makeText(getContext(), "Đang hủy đơn hàng...", Toast.LENGTH_SHORT).show();
     }
@@ -338,19 +352,223 @@ public class OrderFragment extends Fragment implements OrderAdapter.OnOrderActio
         startActivity(intent);
     }
 
+    // ========== SMART UI UPDATE METHODS ==========
+
+    private boolean shouldRemoveFromCurrentFilter(String newStatus) {
+        if (currentFilter.equals("all")) {
+            return false; // "all" tab shows all orders
+        }
+        return !currentFilter.equalsIgnoreCase(newStatus);
+    }
+
+    private void removeOrderFromList(int orderId) {
+        Iterator<Order> iterator = allOrders.iterator();
+        boolean removed = false;
+
+        while (iterator.hasNext()) {
+            Order order = iterator.next();
+            if (order.getOrderId() == orderId) {
+                iterator.remove();
+                removed = true;
+                Log.d(TAG, "Optimistically removed order " + orderId + " from UI");
+                break;
+            }
+        }
+
+        if (removed) {
+            // Update UI immediately
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    orderAdapter.updateOrders(new ArrayList<>(allOrders));
+
+                    // Show empty state if no orders left
+                    if (allOrders.isEmpty()) {
+                        recyclerViewOrders.setVisibility(View.GONE);
+                        layoutEmptyState.setVisibility(View.VISIBLE);
+                    }
+                });
+            }
+        }
+    }
+
     private String getNextStatus(String currentStatus) {
-        switch (currentStatus) {
+        switch (currentStatus.toLowerCase()) {
             case "pending": return "confirmed";
             case "confirmed": return "preparing";
-            case "preparing": return "delivered";
-            case "delivered": return "completed";
+            case "preparing": return "ready";
+            case "ready": return "delivered";
             default: return null;
         }
+    }
+
+    // ========== AUTO REFRESH CONTROL ==========
+
+    /**
+     * Schedule auto refresh after status update
+     */
+    private void scheduleAutoRefresh() {
+        if (!shouldAutoRefresh) return;
+
+        refreshHandler.removeCallbacks(autoRefreshRunnable);
+        refreshHandler.postDelayed(autoRefreshRunnable, 2000); // Refresh after 2 seconds
+    }
+
+    private final Runnable autoRefreshRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (shouldAutoRefresh && !isLoading) {
+                Log.d(TAG, "Auto refresh triggered");
+                refreshDataSilently();
+            }
+        }
+    };
+
+    /**
+     * Refresh data without showing loading indicators
+     */
+    private void refreshDataSilently() {
+        Log.d(TAG, "Silent refresh for current filter: " + currentFilter);
+        currentPage = 1;
+        isLastPage = false;
+
+        // Don't clear the list immediately to avoid flickering
+        orderViewModel.loadOrdersByDirectEndpoint(currentFilter, currentPage, PAGE_SIZE);
+    }
+
+    /**
+     * Enable/disable auto refresh
+     */
+    public void setAutoRefresh(boolean enabled) {
+        this.shouldAutoRefresh = enabled;
+        orderViewModel.enableAutoRefresh(enabled);
+        Log.d(TAG, "Auto refresh " + (enabled ? "enabled" : "disabled"));
+    }
+
+    // ========== PUBLIC METHODS ==========
+
+    /**
+     * Manual refresh method for external calls
+     */
+    public void refreshData() {
+        if (orderViewModel != null) {
+            Log.d(TAG, "Manual refreshData called");
+            refreshDataComplete();
+        }
+    }
+
+    /**
+     * Load specific status with optimization
+     */
+    public void loadStatusOptimized(String status) {
+        currentFilter = status;
+        updateTabAppearance();
+        loadFirstPageOptimized();
+    }
+
+    /**
+     * Get current filter for external access
+     */
+    public String getCurrentFilter() {
+        return currentFilter;
+    }
+
+    /**
+     * Get current orders count
+     */
+    public int getCurrentOrdersCount() {
+        return allOrders.size();
+    }
+
+    // ========== LIFECYCLE METHODS ==========
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume - current filter: " + currentFilter);
+
+        // Enable auto refresh when fragment becomes visible
+        setAutoRefresh(true);
+
+        // Refresh data if the list is empty or if coming back from order detail
+        if (allOrders.isEmpty()) {
+            loadFirstPageOptimized();
+        } else {
+            // Silent refresh to check for updates
+            refreshDataSilently();
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause");
+
+        // Disable auto refresh when fragment is not visible to save resources
+        setAutoRefresh(false);
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        Log.d(TAG, "onDestroyView");
+
+        // Clean up handlers
+        if (refreshHandler != null) {
+            refreshHandler.removeCallbacks(autoRefreshRunnable);
+        }
+
+        // Disable auto refresh
+        setAutoRefresh(false);
+
         binding = null;
+    }
+
+    // ========== DEBUG AND TESTING METHODS ==========
+
+    /**
+     * Test endpoint performance
+     */
+    public void testEndpointPerformance() {
+        if (orderViewModel != null) {
+            orderViewModel.testEndpointPerformance(currentFilter, 1, PAGE_SIZE);
+        }
+    }
+
+    /**
+     * Force refresh for debugging
+     */
+    public void forceRefresh() {
+        Log.d(TAG, "Force refresh triggered");
+        refreshDataComplete();
+    }
+
+    /**
+     * Simulate order status update for testing
+     */
+    public void simulateStatusUpdate(int orderId, String newStatus) {
+        if (shouldRemoveFromCurrentFilter(newStatus)) {
+            removeOrderFromList(orderId);
+        }
+        scheduleAutoRefresh();
+    }
+
+    // ========== ERROR RECOVERY ==========
+
+    /**
+     * Retry last operation in case of failure
+     */
+    public void retryLastOperation() {
+        if (!isLoading) {
+            Log.d(TAG, "Retrying last operation");
+            loadFirstPageOptimized();
+        }
+    }
+
+    /**
+     * Clear error state and reload
+     */
+    public void clearErrorAndReload() {
+        orderViewModel.clearError(); // You may need to implement this in ViewModel
+        refreshDataComplete();
     }
 }
