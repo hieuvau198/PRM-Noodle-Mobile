@@ -29,4 +29,9 @@ public class AuthResponse {
 
     public String getExpiresAt() { return expiresAt; }
     public void setExpiresAt(String expiresAt) { this.expiresAt = expiresAt; }
-} 
+
+    // Helper method to get user ID
+    public int getUserId() {
+        return user != null ? user.getUserId() : -1;
+    }
+}

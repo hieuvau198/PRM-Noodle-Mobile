@@ -22,6 +22,7 @@ import com.example.prm_v3.model.Combo;
 import com.example.prm_v3.model.Product;
 import com.example.prm_v3.model.Topping;
 import com.example.prm_v3.ui.orders.OrderDetailActivity;
+import com.example.prm_v3.utils.UserManager;
 
 import java.util.HashMap;
 import java.util.List;
@@ -36,9 +37,7 @@ public class CreateOrderFragment extends Fragment implements
     private ProductCreateAdapter productAdapter;
     private ComboCreateAdapter comboAdapter;
     private Map<Integer, CheckBox> toppingCheckBoxes = new HashMap<>();
-
-    // Hardcoded user ID for demo - in real app, get from login session
-    private static final int DEMO_USER_ID = 11;
+    private UserManager userManager;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -47,10 +46,24 @@ public class CreateOrderFragment extends Fragment implements
         binding = FragmentCreateBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
+        // Initialize UserManager
+        userManager = UserManager.getInstance(requireContext());
+
+        // Check if user is logged in and has valid role
+        if (!userManager.isLoggedIn() || !userManager.hasValidRole()) {
+            String message = userManager.isCustomer() ?
+                    "Bạn không có quyền truy cập chức năng này" :
+                    "Bạn cần đăng nhập để đặt hàng";
+            Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
+            // Redirect to login or handle accordingly
+            return root;
+        }
+
         setupViewModel();
         setupRecyclerViews();
         observeViewModel();
         setupClickListeners();
+        prefillUserInfo();
 
         // Load initial data
         viewModel.loadInitialData();
@@ -188,7 +201,27 @@ public class CreateOrderFragment extends Fragment implements
         });
     }
 
+    private void prefillUserInfo() {
+        // Pre-fill delivery address with user's default address
+        String defaultAddress = userManager.getDefaultDeliveryAddress();
+        if (defaultAddress != null && !defaultAddress.isEmpty()) {
+            binding.etDeliveryAddress.setText(defaultAddress);
+        }
+
+        // You can also pre-fill other user info if needed
+        // For example, if you have a phone number field:
+        // binding.etPhone.setText(userManager.getCurrentUserPhone());
+    }
+
     private void createOrder() {
+        // Get current user ID
+        int currentUserId = userManager.getCurrentUserId();
+
+        if (currentUserId == -1) {
+            Toast.makeText(getContext(), "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
         String deliveryAddress = binding.etDeliveryAddress.getText().toString().trim();
         String notes = binding.etNotes.getText().toString().trim();
         String paymentMethod = getSelectedPaymentMethod();
@@ -199,7 +232,8 @@ public class CreateOrderFragment extends Fragment implements
             return;
         }
 
-        viewModel.createOrder(DEMO_USER_ID, deliveryAddress, notes, paymentMethod);
+        // Use current user ID instead of hardcoded value
+        viewModel.createOrder(currentUserId, deliveryAddress, notes, paymentMethod);
     }
 
     private String getSelectedPaymentMethod() {
@@ -247,6 +281,12 @@ public class CreateOrderFragment extends Fragment implements
     // Method này chỉ clear form thông thường (không phải sau khi tạo đơn)
     private void clearForm() {
         clearFormCompletely();
+
+        // Re-fill default address after clearing
+        String defaultAddress = userManager.getDefaultDeliveryAddress();
+        if (defaultAddress != null && !defaultAddress.isEmpty()) {
+            binding.etDeliveryAddress.setText(defaultAddress);
+        }
     }
 
     // ProductCreateAdapter.OnProductQuantityChangeListener implementation
@@ -274,6 +314,16 @@ public class CreateOrderFragment extends Fragment implements
     @Override
     public void onResume() {
         super.onResume();
+        // Check if user is still logged in and has valid role
+        if (!userManager.isLoggedIn() || !userManager.hasValidRole()) {
+            String message = userManager.isCustomer() ?
+                    "Bạn không có quyền truy cập chức năng này" :
+                    "Phiên đăng nhập đã hết hạn";
+            Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
+            // Handle logout or redirect
+            return;
+        }
+
         // Refresh UI when fragment becomes visible again
         if (productAdapter != null) {
             productAdapter.notifyDataSetChanged();

@@ -46,16 +46,17 @@ public class LoginActivity extends AppCompatActivity {
                 login();
             }
         });
-
     }
 
     private void login() {
         String email = edtEmail.getText().toString().trim();
         String password = edtPassword.getText().toString().trim();
+
         if (TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
             Toast.makeText(this, "Vui lòng nhập đầy đủ thông tin", Toast.LENGTH_SHORT).show();
             return;
         }
+
         ApiService apiService = ApiClient.getApiService();
         Login request = new Login(email, password);
         apiService.login(request).enqueue(new Callback<AuthResponse>() {
@@ -63,19 +64,48 @@ public class LoginActivity extends AppCompatActivity {
             public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     AuthResponse auth = response.body();
+                    User user = auth.getUser();
 
-                    // Lưu token vào SharedPreferences (token + thời điểm hết hạn)
+                    // Kiểm tra role của user trước khi cho phép đăng nhập
+                    if (user != null) {
+                        String userRole = user.getRole();
+                        if (userRole == null ||
+                                (!userRole.equalsIgnoreCase("admin") && !userRole.equalsIgnoreCase("staff"))) {
+                            Toast.makeText(LoginActivity.this,
+                                    "Bạn không có quyền truy cập ứng dụng này. Chỉ admin và staff được phép sử dụng.",
+                                    Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                    } else {
+                        Toast.makeText(LoginActivity.this, "Không thể lấy thông tin người dùng", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    // Lưu token và user info vào SharedPreferences
                     long expiryMillis = System.currentTimeMillis() + 2 * 60 * 60 * 1000; // 2 tiếng
-                    getSharedPreferences("app_prefs", MODE_PRIVATE)
-                            .edit()
-                            .putString("token", auth.getToken())
-                            .putLong("token_expiry", expiryMillis)
-                            .apply();
+                    SharedPreferences.Editor editor = getSharedPreferences("app_prefs", MODE_PRIVATE).edit();
 
-                    // ✅ Thông báo đăng nhập thành công
-                    Toast.makeText(LoginActivity.this, "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
+                    editor.putString("token", auth.getToken());
+                    editor.putLong("token_expiry", expiryMillis);
 
-                    // Chuyển sang MainActivity (trang đơn hàng)
+                    // Lưu user info
+                    editor.putInt("user_id", user.getUserId());
+                    editor.putString("user_name", user.getFullName());
+                    editor.putString("user_username", user.getUsername());
+                    editor.putString("user_email", user.getEmail());
+                    editor.putString("user_phone", user.getPhone());
+                    editor.putString("user_address", user.getAddress());
+                    editor.putString("user_role", user.getRole());
+
+                    editor.apply();
+
+                    // Thông báo đăng nhập thành công với role
+                    String welcomeMessage = user.getRole().equalsIgnoreCase("admin") ?
+                            "Chào mừng Admin " + user.getDisplayName() :
+                            "Chào mừng " + user.getDisplayName();
+                    Toast.makeText(LoginActivity.this, welcomeMessage, Toast.LENGTH_SHORT).show();
+
+                    // Chuyển sang MainActivity
                     Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                     startActivity(intent);
                     finish();
@@ -91,10 +121,11 @@ public class LoginActivity extends AppCompatActivity {
                     Toast.makeText(LoginActivity.this, errorMsg, Toast.LENGTH_SHORT).show();
                 }
             }
+
             @Override
             public void onFailure(Call<AuthResponse> call, Throwable t) {
-                Toast.makeText(LoginActivity.this, "Lỗi kết nối", Toast.LENGTH_SHORT).show();
+                Toast.makeText(LoginActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
-} 
+}

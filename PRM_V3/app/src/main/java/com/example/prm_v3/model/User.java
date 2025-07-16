@@ -73,13 +73,12 @@ public class User {
     public String getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(String updatedAt) { this.updatedAt = updatedAt; }
 
-    // Helper methods
+    // Helper methods for display
     public String getDisplayRole() {
-        if (role == null) return "Người dùng";
+        if (role == null) return "Không xác định";
         switch (role.toLowerCase()) {
             case "admin": return "Quản trị viên";
             case "staff": return "Nhân viên";
-            case "manager": return "Quản lý";
             case "customer": return "Khách hàng";
             default: return role;
         }
@@ -113,9 +112,70 @@ public class User {
         return address != null && !address.trim().isEmpty() && !address.equals("null");
     }
 
+    // Additional helper methods for role checking
+    public String getDisplayName() {
+        if (fullName != null && !fullName.trim().isEmpty()) {
+            return fullName;
+        }
+        if (username != null && !username.trim().isEmpty()) {
+            return username;
+        }
+        return email;
+    }
+
+    public boolean hasRole(String role) {
+        return this.role != null && this.role.equalsIgnoreCase(role);
+    }
+
+    public boolean isAdmin() {
+        return hasRole("admin");
+    }
+
+    public boolean isStaff() {
+        return hasRole("staff");
+    }
+
+    public boolean isCustomer() {
+        return hasRole("customer");
+    }
+
+    // Check if user has valid role for this app (only admin and staff)
+    public boolean hasValidAppRole() {
+        return isAdmin() || isStaff();
+    }
+
+    public boolean isActiveUser() {
+        return isActive != null && isActive;
+    }
+
+    // Get default delivery address
+    public String getDefaultDeliveryAddress() {
+        return hasAddress() ? address : "";
+    }
+
+    // Check if user info is complete
+    public boolean isProfileComplete() {
+        return fullName != null && !fullName.trim().isEmpty() &&
+                email != null && !email.trim().isEmpty() &&
+                hasPhone() && hasAddress();
+    }
+
     @Override
     public String toString() {
         return String.format("User{id=%d, username='%s', fullName='%s', role='%s'}",
                 userId, username, fullName, role);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return userId == user.userId;
+    }
+
+    @Override
+    public int hashCode() {
+        return Integer.hashCode(userId);
     }
 }
