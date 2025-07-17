@@ -1,5 +1,6 @@
 package com.example.prm_v3.ui.payment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -13,6 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -26,6 +28,7 @@ import com.example.prm_v3.databinding.FragmentPaymentBinding;
 import com.example.prm_v3.model.Payment;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymentActionListener {
@@ -48,7 +51,7 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
     private boolean shouldAutoRefresh = true;
 
     // Tab views
-    private TextView tabAll, tabPending, tabPaid, tabFailed;
+    private TextView tabAll, tabPending, tabProcessing, tabPaid, tabFailed;
     private RecyclerView recyclerViewPayments;
     private SwipeRefreshLayout swipeRefreshLayout;
     private ProgressBar progressBar;
@@ -76,6 +79,7 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
         Log.d(TAG, "initViews");
         tabAll = binding.tabAll;
         tabPending = binding.tabPending;
+        tabProcessing = binding.tabProcessing;
         tabPaid = binding.tabPaid;
         tabFailed = binding.tabFailed;
 
@@ -126,6 +130,7 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
     private void setupTabListeners() {
         tabAll.setOnClickListener(v -> selectTab("all"));
         tabPending.setOnClickListener(v -> selectTab("pending"));
+        tabProcessing.setOnClickListener(v -> selectTab("processing"));
         tabPaid.setOnClickListener(v -> selectTab("paid"));
         tabFailed.setOnClickListener(v -> selectTab("failed"));
     }
@@ -184,6 +189,7 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
         // Reset all tabs
         resetTab(tabAll);
         resetTab(tabPending);
+        resetTab(tabProcessing);
         resetTab(tabPaid);
         resetTab(tabFailed);
 
@@ -204,6 +210,7 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
         switch (currentFilter) {
             case "all": return tabAll;
             case "pending": return tabPending;
+            case "processing": return tabProcessing;
             case "paid": return tabPaid;
             case "failed": return tabFailed;
             default: return tabAll;
@@ -307,6 +314,12 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
     @Override
     public void onProcessPayment(Payment payment) {
         Log.d(TAG, "onProcessPayment: " + payment.getPaymentId());
+
+        // Optimistic UI update
+        if (shouldRemoveFromCurrentFilter("processing")) {
+            removePaymentFromList(payment.getPaymentId());
+        }
+
         paymentViewModel.processPayment(payment.getPaymentId());
         Toast.makeText(getContext(), "Đang xử lý thanh toán...", Toast.LENGTH_SHORT).show();
     }
@@ -314,6 +327,12 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
     @Override
     public void onCompletePayment(Payment payment) {
         Log.d(TAG, "onCompletePayment: " + payment.getPaymentId());
+
+        // Optimistic UI update
+        if (shouldRemoveFromCurrentFilter("paid")) {
+            removePaymentFromList(payment.getPaymentId());
+        }
+
         paymentViewModel.completePayment(payment.getPaymentId());
         Toast.makeText(getContext(), "Đang hoàn tất thanh toán...", Toast.LENGTH_SHORT).show();
     }
@@ -323,10 +342,15 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
         Log.d(TAG, "onFailPayment: " + payment.getPaymentId());
 
         // Show confirmation dialog
-        new androidx.appcompat.app.AlertDialog.Builder(getContext())
+        new AlertDialog.Builder(getContext())
                 .setTitle("Xác nhận")
                 .setMessage("Bạn có chắc muốn đánh dấu thanh toán này là thất bại?")
                 .setPositiveButton("Đồng ý", (dialog, which) -> {
+                    // Optimistic UI update
+                    if (shouldRemoveFromCurrentFilter("failed")) {
+                        removePaymentFromList(payment.getPaymentId());
+                    }
+
                     paymentViewModel.failPayment(payment.getPaymentId());
                     Toast.makeText(getContext(), "Đang cập nhật trạng thái...", Toast.LENGTH_SHORT).show();
                 })
@@ -336,40 +360,48 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
 
     @Override
     public void onPaymentClick(Payment payment) {
-        // Show payment details dialog or navigate to detail screen
-        showPaymentDetailsDialog(payment);
+        // Navigate to payment detail
+        Intent intent = PaymentDetailActivity.newIntent(getContext(), payment.getPaymentId());
+        startActivity(intent);
     }
 
-    // ========== PAYMENT DETAILS DIALOG ==========
+    // ========== SMART UI UPDATE METHODS ==========
 
-    private void showPaymentDetailsDialog(Payment payment) {
-        if (getContext() == null) return;
+    private boolean shouldRemoveFromCurrentFilter(String newStatus) {
+        if (currentFilter.equals("all")) {
+            return false; // "all" tab shows all payments
+        }
+        return !currentFilter.equalsIgnoreCase(newStatus);
+    }
 
-        String details = String.format(
-                "Chi tiết thanh toán\n\n" +
-                        "ID: #%d\n" +
-                        "Đơn hàng: #%d\n" +
-                        "Khách hàng: %s\n" +
-                        "Số tiền: %.0f₫\n" +
-                        "Phương thức: %s\n" +
-                        "Trạng thái: %s\n" +
-                        "Ngày: %s\n" +
-                        "Mã giao dịch: %s",
-                payment.getPaymentId(),
-                payment.getOrderId(),
-                payment.getCustomerName(),
-                payment.getPaymentAmount(),
-                paymentViewModel.getPaymentMethodDisplayText(payment.getPaymentMethod()),
-                paymentViewModel.getPaymentStatusDisplayText(payment.getPaymentStatus()),
-                payment.getPaymentDate(),
-                payment.getTransactionReference() != null ? payment.getTransactionReference() : "Chưa có"
-        );
+    private void removePaymentFromList(int paymentId) {
+        Iterator<Payment> iterator = allPayments.iterator();
+        boolean removed = false;
 
-        new androidx.appcompat.app.AlertDialog.Builder(getContext())
-                .setTitle("Chi tiết thanh toán")
-                .setMessage(details)
-                .setPositiveButton("Đóng", null)
-                .show();
+        while (iterator.hasNext()) {
+            Payment payment = iterator.next();
+            if (payment.getPaymentId() == paymentId) {
+                iterator.remove();
+                removed = true;
+                Log.d(TAG, "Optimistically removed payment " + paymentId + " from UI");
+                break;
+            }
+        }
+
+        if (removed) {
+            // Update UI immediately
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    paymentAdapter.setPayments(new ArrayList<>(allPayments));
+
+                    // Show empty state if no payments left
+                    if (allPayments.isEmpty()) {
+                        recyclerViewPayments.setVisibility(View.GONE);
+                        layoutEmptyState.setVisibility(View.VISIBLE);
+                    }
+                });
+            }
+        }
     }
 
     // ========== AUTO REFRESH CONTROL ==========
@@ -466,6 +498,34 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
 
         setAutoRefresh(false);
         binding = null;
+    }
+
+    // ========== SEARCH AND FILTER METHODS ==========
+
+    public void searchPayments(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            paymentAdapter.setPayments(new ArrayList<>(allPayments));
+            return;
+        }
+
+        List<Payment> filteredPayments = new ArrayList<>();
+        String lowerCaseQuery = query.toLowerCase();
+
+        for (Payment payment : allPayments) {
+            if (payment.getCustomerName() != null &&
+                    payment.getCustomerName().toLowerCase().contains(lowerCaseQuery)) {
+                filteredPayments.add(payment);
+            } else if (String.valueOf(payment.getOrderId()).contains(lowerCaseQuery)) {
+                filteredPayments.add(payment);
+            } else if (String.valueOf(payment.getPaymentId()).contains(lowerCaseQuery)) {
+                filteredPayments.add(payment);
+            } else if (payment.getTransactionReference() != null &&
+                    payment.getTransactionReference().toLowerCase().contains(lowerCaseQuery)) {
+                filteredPayments.add(payment);
+            }
+        }
+
+        paymentAdapter.setPayments(filteredPayments);
     }
 
     // ========== DEBUG METHODS ==========

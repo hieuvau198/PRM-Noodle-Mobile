@@ -36,7 +36,7 @@
                 android:textStyle="bold"
                 android:textColor="@color/orange_600"
                 android:textSize="18sp"
-                tools:text="#1" />
+                tools:text="Thanh toán #1" />
 
             <TextView
                 android:id="@+id/tvOrderId"
@@ -46,7 +46,7 @@
                 android:layout_marginStart="12dp"
                 android:textColor="@color/gray_600"
                 android:textSize="14sp"
-                tools:text="Đơn: 3" />
+                tools:text="Đơn: #3" />
 
             <View
                 android:layout_width="0dp"
@@ -193,60 +193,71 @@
 
         </LinearLayout>
 
-        <!-- Action Buttons (Optional - only show if needed) -->
+        <!-- Action Buttons - UPDATED: Always visible, smart visibility -->
         <LinearLayout
             android:id="@+id/layout_action_buttons"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_marginTop="16dp"
-            android:visibility="gone"
             app:layout_constraintTop_toBottomOf="@id/layout_payment_details"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent">
 
-            <Button
+            <!-- Process Payment Button -->
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_process_payment"
                 android:layout_width="0dp"
                 android:layout_height="40dp"
                 android:layout_weight="1"
-                android:background="@drawable/bg_button_preparing"
+                android:backgroundTint="@color/blue_600"
                 android:text="Xử lý"
                 android:textColor="@android:color/white"
                 android:textSize="14sp"
                 android:textStyle="bold"
                 android:layout_marginEnd="4dp"
+                app:cornerRadius="8dp"
+                app:iconGravity="textStart"
+                app:iconSize="16dp"
                 android:visibility="gone"
-                tools:text="Xử lý" />
+                tools:visibility="visible" />
 
-            <Button
+            <!-- Complete Payment Button -->
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_complete_payment"
                 android:layout_width="0dp"
                 android:layout_height="40dp"
                 android:layout_weight="1"
-                android:background="@drawable/bg_status_completed"
+                android:backgroundTint="@color/green_600"
                 android:text="Hoàn tất"
                 android:textColor="@android:color/white"
                 android:textSize="14sp"
                 android:textStyle="bold"
                 android:layout_marginHorizontal="2dp"
+                app:cornerRadius="8dp"
+                app:iconGravity="textStart"
+                app:iconSize="16dp"
                 android:visibility="gone"
-                tools:text="Hoàn tất" />
+                tools:visibility="visible" />
 
-            <Button
+            <!-- Fail Payment Button -->
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_fail_payment"
                 android:layout_width="0dp"
                 android:layout_height="40dp"
                 android:layout_weight="1"
-                android:background="@drawable/bg_button_cancelled"
+                android:backgroundTint="@color/red_600"
                 android:text="Thất bại"
                 android:textColor="@android:color/white"
                 android:textSize="14sp"
                 android:textStyle="bold"
                 android:layout_marginStart="4dp"
+                app:cornerRadius="8dp"
+                app:iconGravity="textStart"
+                app:iconSize="16dp"
                 android:visibility="gone"
-                tools:text="Thất bại" />
+                tools:visibility="visible" />
 
         </LinearLayout>
 

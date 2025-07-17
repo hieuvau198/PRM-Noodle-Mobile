@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.prm_v3.R;
 import com.example.prm_v3.model.Payment;
+import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -87,9 +88,9 @@ public class PaymentAdapter extends RecyclerView.Adapter<PaymentAdapter.PaymentV
         private TextView tvMethod;
         private TextView tvDate;
         private TextView tvTransactionRef;
-        private Button btnProcess;
-        private Button btnComplete;
-        private Button btnFail;
+        private MaterialButton btnProcess;
+        private MaterialButton btnComplete;
+        private MaterialButton btnFail;
 
         public PaymentViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -124,8 +125,8 @@ public class PaymentAdapter extends RecyclerView.Adapter<PaymentAdapter.PaymentV
             Log.d(TAG, "Binding payment details: #" + payment.getPaymentId());
 
             // Basic payment information
-            tvPaymentId.setText("#" + payment.getPaymentId());
-            tvOrderId.setText("Đơn: " + payment.getOrderId());
+            tvPaymentId.setText("Thanh toán #" + payment.getPaymentId());
+            tvOrderId.setText("Đơn: #" + payment.getOrderId());
 
             // Customer name with prefix
             String customerName = payment.getCustomerName() != null ? payment.getCustomerName() : "N/A";
@@ -138,6 +139,7 @@ public class PaymentAdapter extends RecyclerView.Adapter<PaymentAdapter.PaymentV
             String status = payment.getPaymentStatus();
             tvStatus.setText(getStatusDisplayText(status));
             tvStatus.setTextColor(ContextCompat.getColor(itemView.getContext(), getStatusColor(status)));
+            tvStatus.setBackground(ContextCompat.getDrawable(itemView.getContext(), getStatusBackground(status)));
 
             // Payment method
             tvMethod.setText(getMethodDisplayText(payment.getPaymentMethod()));
@@ -160,13 +162,15 @@ public class PaymentAdapter extends RecyclerView.Adapter<PaymentAdapter.PaymentV
                 }
             }
 
-            // Setup action buttons if they exist
+            // Setup action buttons
             setupActionButtons(payment);
         }
 
         private void setupActionButtons(Payment payment) {
             String status = payment.getPaymentStatus();
+            Log.d(TAG, "Setting up buttons for status: " + status);
 
+            // Process Button
             if (btnProcess != null) {
                 if (canProcessPayment(status)) {
                     btnProcess.setVisibility(View.VISIBLE);
@@ -180,6 +184,7 @@ public class PaymentAdapter extends RecyclerView.Adapter<PaymentAdapter.PaymentV
                 }
             }
 
+            // Complete Button
             if (btnComplete != null) {
                 if (canCompletePayment(status)) {
                     btnComplete.setVisibility(View.VISIBLE);
@@ -193,6 +198,7 @@ public class PaymentAdapter extends RecyclerView.Adapter<PaymentAdapter.PaymentV
                 }
             }
 
+            // Fail Button
             if (btnFail != null) {
                 if (canFailPayment(status)) {
                     btnFail.setVisibility(View.VISIBLE);
@@ -204,6 +210,17 @@ public class PaymentAdapter extends RecyclerView.Adapter<PaymentAdapter.PaymentV
                 } else {
                     btnFail.setVisibility(View.GONE);
                 }
+            }
+
+            // Show/hide button container based on availability
+            View buttonContainer = itemView.findViewById(R.id.layout_action_buttons);
+            if (buttonContainer != null) {
+                boolean hasAnyVisibleButton =
+                        (btnProcess != null && btnProcess.getVisibility() == View.VISIBLE) ||
+                                (btnComplete != null && btnComplete.getVisibility() == View.VISIBLE) ||
+                                (btnFail != null && btnFail.getVisibility() == View.VISIBLE);
+
+                buttonContainer.setVisibility(hasAnyVisibleButton ? View.VISIBLE : View.GONE);
             }
         }
 
@@ -249,6 +266,27 @@ public class PaymentAdapter extends RecyclerView.Adapter<PaymentAdapter.PaymentV
             }
         }
 
+        private int getStatusBackground(String status) {
+            if (status == null) return R.drawable.bg_status_badge;
+
+            switch (status.toLowerCase()) {
+                case "pending":
+                    return R.drawable.bg_status_pending;
+                case "processing":
+                    return R.drawable.bg_payment_processing;
+                case "paid":
+                    return R.drawable.bg_payment_paid;
+                case "failed":
+                    return R.drawable.bg_payment_failed;
+                case "refunded":
+                    return R.drawable.bg_status_cancelled;
+                case "cancelled":
+                    return R.drawable.bg_status_cancelled;
+                default:
+                    return R.drawable.bg_status_badge;
+            }
+        }
+
         private String getMethodDisplayText(String method) {
             if (method == null) return "Không xác định";
 
@@ -267,6 +305,8 @@ public class PaymentAdapter extends RecyclerView.Adapter<PaymentAdapter.PaymentV
                     return method;
             }
         }
+
+        // ========== BUTTON VISIBILITY LOGIC ==========
 
         private boolean canProcessPayment(String status) {
             return "pending".equalsIgnoreCase(status);
@@ -354,5 +394,13 @@ public class PaymentAdapter extends RecyclerView.Adapter<PaymentAdapter.PaymentV
             return payments.get(position);
         }
         return null;
+    }
+
+    /**
+     * Filter payments by status for local filtering
+     */
+    public void filterByStatus(String status) {
+        // This can be implemented if needed for local filtering
+        Log.d(TAG, "Filter by status: " + status);
     }
 }
