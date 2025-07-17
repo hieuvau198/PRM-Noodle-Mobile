@@ -27,7 +27,6 @@ public class PaymentAdapter extends RecyclerView.Adapter<PaymentAdapter.PaymentV
 
     public interface OnPaymentActionListener {
         void onProcessPayment(Payment payment);
-        void onCompletePayment(Payment payment);
         void onFailPayment(Payment payment);
         void onPaymentClick(Payment payment);
     }
@@ -88,8 +87,7 @@ public class PaymentAdapter extends RecyclerView.Adapter<PaymentAdapter.PaymentV
         private TextView tvMethod;
         private TextView tvDate;
         private TextView tvTransactionRef;
-        private MaterialButton btnProcess;
-        private MaterialButton btnComplete;
+        private MaterialButton btnSuccess;
         private MaterialButton btnFail;
 
         public PaymentViewHolder(@NonNull View itemView) {
@@ -103,8 +101,7 @@ public class PaymentAdapter extends RecyclerView.Adapter<PaymentAdapter.PaymentV
             tvMethod = itemView.findViewById(R.id.tvMethod);
             tvDate = itemView.findViewById(R.id.tvDate);
             tvTransactionRef = itemView.findViewById(R.id.tvTransactionRef);
-            btnProcess = itemView.findViewById(R.id.btn_process_payment);
-            btnComplete = itemView.findViewById(R.id.btn_complete_payment);
+            btnSuccess = itemView.findViewById(R.id.btn_success_payment);
             btnFail = itemView.findViewById(R.id.btn_fail_payment);
 
             // Set click listener for the entire item
@@ -128,7 +125,7 @@ public class PaymentAdapter extends RecyclerView.Adapter<PaymentAdapter.PaymentV
             tvPaymentId.setText("Thanh toán #" + payment.getPaymentId());
             tvOrderId.setText("Đơn: #" + payment.getOrderId());
 
-            // Customer name with prefix
+            // Customer name
             String customerName = payment.getCustomerName() != null ? payment.getCustomerName() : "N/A";
             tvCustomerName.setText("Khách hàng: " + customerName);
 
@@ -144,10 +141,10 @@ public class PaymentAdapter extends RecyclerView.Adapter<PaymentAdapter.PaymentV
             // Payment method
             tvMethod.setText(getMethodDisplayText(payment.getPaymentMethod()));
 
-            // Payment date (format if needed)
+            // Payment date
             String date = payment.getPaymentDate();
             if (date != null && date.length() >= 10) {
-                tvDate.setText(date.substring(0, 10)); // Show only date part
+                tvDate.setText(date.substring(0, 10));
             } else {
                 tvDate.setText(date != null ? date : "N/A");
             }
@@ -170,35 +167,22 @@ public class PaymentAdapter extends RecyclerView.Adapter<PaymentAdapter.PaymentV
             String status = payment.getPaymentStatus();
             Log.d(TAG, "Setting up buttons for status: " + status);
 
-            // Process Button
-            if (btnProcess != null) {
+            // Success Button - Show for pending and processing
+            if (btnSuccess != null) {
                 if (canProcessPayment(status)) {
-                    btnProcess.setVisibility(View.VISIBLE);
-                    btnProcess.setOnClickListener(v -> {
+                    btnSuccess.setVisibility(View.VISIBLE);
+                    btnSuccess.setText(getSuccessButtonText(status));
+                    btnSuccess.setOnClickListener(v -> {
                         if (listener != null) {
                             listener.onProcessPayment(payment);
                         }
                     });
                 } else {
-                    btnProcess.setVisibility(View.GONE);
+                    btnSuccess.setVisibility(View.GONE);
                 }
             }
 
-            // Complete Button
-            if (btnComplete != null) {
-                if (canCompletePayment(status)) {
-                    btnComplete.setVisibility(View.VISIBLE);
-                    btnComplete.setOnClickListener(v -> {
-                        if (listener != null) {
-                            listener.onCompletePayment(payment);
-                        }
-                    });
-                } else {
-                    btnComplete.setVisibility(View.GONE);
-                }
-            }
-
-            // Fail Button
+            // Fail Button - Show for pending and processing
             if (btnFail != null) {
                 if (canFailPayment(status)) {
                     btnFail.setVisibility(View.VISIBLE);
@@ -212,15 +196,27 @@ public class PaymentAdapter extends RecyclerView.Adapter<PaymentAdapter.PaymentV
                 }
             }
 
-            // Show/hide button container based on availability
+            // Show/hide button container
             View buttonContainer = itemView.findViewById(R.id.layout_action_buttons);
             if (buttonContainer != null) {
-                boolean hasAnyVisibleButton =
-                        (btnProcess != null && btnProcess.getVisibility() == View.VISIBLE) ||
-                                (btnComplete != null && btnComplete.getVisibility() == View.VISIBLE) ||
+                boolean hasVisibleButtons =
+                        (btnSuccess != null && btnSuccess.getVisibility() == View.VISIBLE) ||
                                 (btnFail != null && btnFail.getVisibility() == View.VISIBLE);
 
-                buttonContainer.setVisibility(hasAnyVisibleButton ? View.VISIBLE : View.GONE);
+                buttonContainer.setVisibility(hasVisibleButtons ? View.VISIBLE : View.GONE);
+            }
+        }
+
+        private String getSuccessButtonText(String status) {
+            if (status == null) return "Xử lý";
+
+            switch (status.toLowerCase()) {
+                case "pending":
+                    return "Xử lý";
+                case "processing":
+                    return "Hoàn tất";
+                default:
+                    return "Xử lý";
             }
         }
 
@@ -232,14 +228,10 @@ public class PaymentAdapter extends RecyclerView.Adapter<PaymentAdapter.PaymentV
                     return "Chờ thanh toán";
                 case "processing":
                     return "Đang xử lý";
-                case "paid":
-                    return "Đã thanh toán";
+                case "complete":
+                    return "Thành công";
                 case "failed":
                     return "Thất bại";
-                case "refunded":
-                    return "Đã hoàn tiền";
-                case "cancelled":
-                    return "Đã hủy";
                 default:
                     return status;
             }
@@ -253,14 +245,10 @@ public class PaymentAdapter extends RecyclerView.Adapter<PaymentAdapter.PaymentV
                     return R.color.orange_600;
                 case "processing":
                     return R.color.blue_600;
-                case "paid":
+                case "complete":
                     return R.color.green_600;
                 case "failed":
                     return R.color.red_600;
-                case "refunded":
-                    return R.color.purple_600;
-                case "cancelled":
-                    return R.color.gray_600;
                 default:
                     return R.color.gray_600;
             }
@@ -274,14 +262,10 @@ public class PaymentAdapter extends RecyclerView.Adapter<PaymentAdapter.PaymentV
                     return R.drawable.bg_status_pending;
                 case "processing":
                     return R.drawable.bg_payment_processing;
-                case "paid":
+                case "complete":
                     return R.drawable.bg_payment_paid;
                 case "failed":
                     return R.drawable.bg_payment_failed;
-                case "refunded":
-                    return R.drawable.bg_status_cancelled;
-                case "cancelled":
-                    return R.drawable.bg_status_cancelled;
                 default:
                     return R.drawable.bg_status_badge;
             }
@@ -306,13 +290,8 @@ public class PaymentAdapter extends RecyclerView.Adapter<PaymentAdapter.PaymentV
             }
         }
 
-        // ========== BUTTON VISIBILITY LOGIC ==========
-
+        // Button visibility logic
         private boolean canProcessPayment(String status) {
-            return "pending".equalsIgnoreCase(status);
-        }
-
-        private boolean canCompletePayment(String status) {
             return "pending".equalsIgnoreCase(status) ||
                     "processing".equalsIgnoreCase(status);
         }
@@ -323,11 +302,7 @@ public class PaymentAdapter extends RecyclerView.Adapter<PaymentAdapter.PaymentV
         }
     }
 
-    // ========== HELPER METHODS ==========
-
-    /**
-     * Update a specific payment in the list
-     */
+    // Helper methods for updating payments
     public void updatePayment(Payment updatedPayment) {
         for (int i = 0; i < payments.size(); i++) {
             if (payments.get(i).getPaymentId() == updatedPayment.getPaymentId()) {
@@ -339,9 +314,6 @@ public class PaymentAdapter extends RecyclerView.Adapter<PaymentAdapter.PaymentV
         }
     }
 
-    /**
-     * Remove a payment from the list
-     */
     public void removePayment(int paymentId) {
         for (int i = 0; i < payments.size(); i++) {
             if (payments.get(i).getPaymentId() == paymentId) {
@@ -353,54 +325,11 @@ public class PaymentAdapter extends RecyclerView.Adapter<PaymentAdapter.PaymentV
         }
     }
 
-    /**
-     * Add a new payment to the list
-     */
-    public void addPayment(Payment payment) {
-        payments.add(0, payment); // Add at the beginning
-        notifyItemInserted(0);
-        Log.d(TAG, "Payment added at position: 0");
-    }
-
-    /**
-     * Get current payments list
-     */
     public List<Payment> getPayments() {
         return new ArrayList<>(payments);
     }
 
-    /**
-     * Clear all payments
-     */
-    public void clearPayments() {
-        int size = payments.size();
-        payments.clear();
-        notifyItemRangeRemoved(0, size);
-        Log.d(TAG, "All payments cleared");
-    }
-
-    /**
-     * Check if adapter is empty
-     */
     public boolean isEmpty() {
         return payments.isEmpty();
-    }
-
-    /**
-     * Get payment at specific position
-     */
-    public Payment getPaymentAt(int position) {
-        if (position >= 0 && position < payments.size()) {
-            return payments.get(position);
-        }
-        return null;
-    }
-
-    /**
-     * Filter payments by status for local filtering
-     */
-    public void filterByStatus(String status) {
-        // This can be implemented if needed for local filtering
-        Log.d(TAG, "Filter by status: " + status);
     }
 }

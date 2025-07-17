@@ -10,14 +10,12 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.ViewModelProvider;
 
 import com.example.prm_v3.R;
 import com.example.prm_v3.api.ApiClient;
 import com.example.prm_v3.api.ApiService;
 import com.example.prm_v3.databinding.ActivityPaymentDetailBinding;
 import com.example.prm_v3.model.Payment;
-import com.example.prm_v3.utils.StatusHelper;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -76,12 +74,6 @@ public class PaymentDetailActivity extends AppCompatActivity {
         binding.btnProcessPayment.setOnClickListener(v -> {
             if (currentPayment != null) {
                 processPayment();
-            }
-        });
-
-        binding.btnCompletePayment.setOnClickListener(v -> {
-            if (currentPayment != null) {
-                completePayment();
             }
         });
 
@@ -171,138 +163,83 @@ public class PaymentDetailActivity extends AppCompatActivity {
         binding.tvPaymentDate.setText(formatDate(payment.getPaymentDate()));
         binding.tvCreatedAt.setText(formatDate(payment.getCreatedAt()));
 
-        // Processed Date
-        if (payment.getProcessedAt() != null && !payment.getProcessedAt().isEmpty()) {
-            binding.layoutProcessedDate.setVisibility(View.VISIBLE);
-            binding.tvProcessedAt.setText(formatDate(payment.getProcessedAt()));
-        } else {
-            binding.layoutProcessedDate.setVisibility(View.GONE);
-        }
-
-        // Completed Date
-        if (payment.getCompletedAt() != null && !payment.getCompletedAt().isEmpty()) {
-            binding.layoutCompletedDate.setVisibility(View.VISIBLE);
-            binding.tvCompletedAt.setText(formatDate(payment.getCompletedAt()));
-        } else {
-            binding.layoutCompletedDate.setVisibility(View.GONE);
-        }
-
-        // Deletion Information
-        if (payment.isDeleted()) {
-            binding.layoutDeletionInfo.setVisibility(View.VISIBLE);
-            binding.tvDeletionReason.setText(payment.getDeletionReason() != null ?
-                    payment.getDeletionReason() : "Không có lý do");
-        } else {
-            binding.layoutDeletionInfo.setVisibility(View.GONE);
-        }
-
         // Update Action Buttons
         updateActionButtons(status);
     }
 
     private void updateActionButtons(String status) {
-        // Process Button
-        if (canProcessPayment(status)) {
+        // Only show buttons for pending and processing status
+        if ("pending".equalsIgnoreCase(status)) {
             binding.btnProcessPayment.setVisibility(View.VISIBLE);
             binding.btnProcessPayment.setText("Xử lý thanh toán");
-        } else {
-            binding.btnProcessPayment.setVisibility(View.GONE);
-        }
-
-        // Complete Button
-        if (canCompletePayment(status)) {
-            binding.btnCompletePayment.setVisibility(View.VISIBLE);
-            binding.btnCompletePayment.setText("Hoàn tất thanh toán");
-        } else {
-            binding.btnCompletePayment.setVisibility(View.GONE);
-        }
-
-        // Fail Button
-        if (canFailPayment(status)) {
             binding.btnFailPayment.setVisibility(View.VISIBLE);
-            binding.btnFailPayment.setText("Đánh dấu thất bại");
+            binding.layoutActionButtons.setVisibility(View.VISIBLE);
+        } else if ("processing".equalsIgnoreCase(status)) {
+            binding.btnProcessPayment.setVisibility(View.VISIBLE);
+            binding.btnProcessPayment.setText("Hoàn tất thanh toán");
+            binding.btnFailPayment.setVisibility(View.VISIBLE);
+            binding.layoutActionButtons.setVisibility(View.VISIBLE);
         } else {
+            // For complete, failed, etc. - hide all buttons
+            binding.btnProcessPayment.setVisibility(View.GONE);
             binding.btnFailPayment.setVisibility(View.GONE);
+            binding.layoutActionButtons.setVisibility(View.GONE);
         }
-
-        // Hide button container if no buttons are visible
-        boolean hasVisibleButtons =
-                binding.btnProcessPayment.getVisibility() == View.VISIBLE ||
-                        binding.btnCompletePayment.getVisibility() == View.VISIBLE ||
-                        binding.btnFailPayment.getVisibility() == View.VISIBLE;
-
-        binding.layoutActionButtons.setVisibility(hasVisibleButtons ? View.VISIBLE : View.GONE);
     }
 
     // ========== PAYMENT ACTIONS ==========
 
     private void processPayment() {
         Log.d(TAG, "Processing payment: " + paymentId);
+        String currentStatus = currentPayment.getPaymentStatus();
 
         binding.progressBar.setVisibility(View.VISIBLE);
 
-        Call<Payment> call = apiService.processPayment(paymentId);
-        call.enqueue(new Callback<Payment>() {
-            @Override
-            public void onResponse(Call<Payment> call, Response<Payment> response) {
-                binding.progressBar.setVisibility(View.GONE);
-
-                if (response.isSuccessful() && response.body() != null) {
-                    currentPayment = response.body();
-                    updateUI(currentPayment);
-                    Toast.makeText(PaymentDetailActivity.this,
-                            "Thanh toán đã được xử lý", Toast.LENGTH_SHORT).show();
-                } else {
-                    String errorMsg = "Lỗi khi xử lý thanh toán";
-                    if (response.code() == 400) {
-                        errorMsg = "Không thể xử lý thanh toán từ trạng thái hiện tại";
-                    }
-                    Toast.makeText(PaymentDetailActivity.this, errorMsg, Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<Payment> call, Throwable t) {
-                binding.progressBar.setVisibility(View.GONE);
-                Toast.makeText(PaymentDetailActivity.this,
-                        "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
+        if ("pending".equalsIgnoreCase(currentStatus)) {
+            // Move to processing
+            Call<Payment> call = apiService.processPayment(paymentId);
+            call.enqueue(processCallback);
+        } else if ("processing".equalsIgnoreCase(currentStatus)) {
+            // Move to paid (complete)
+            Call<Payment> call = apiService.completePayment(paymentId);
+            call.enqueue(processCallback);
+        }
     }
 
-    private void completePayment() {
-        Log.d(TAG, "Completing payment: " + paymentId);
+    private final Callback<Payment> processCallback = new Callback<Payment>() {
+        @Override
+        public void onResponse(Call<Payment> call, Response<Payment> response) {
+            binding.progressBar.setVisibility(View.GONE);
 
-        binding.progressBar.setVisibility(View.VISIBLE);
+            if (response.isSuccessful() && response.body() != null) {
+                currentPayment = response.body();
+                updateUI(currentPayment);
 
-        Call<Payment> call = apiService.completePayment(paymentId);
-        call.enqueue(new Callback<Payment>() {
-            @Override
-            public void onResponse(Call<Payment> call, Response<Payment> response) {
-                binding.progressBar.setVisibility(View.GONE);
-
-                if (response.isSuccessful() && response.body() != null) {
-                    currentPayment = response.body();
-                    updateUI(currentPayment);
-                    Toast.makeText(PaymentDetailActivity.this,
-                            "Thanh toán đã hoàn tất", Toast.LENGTH_SHORT).show();
-                } else {
-                    String errorMsg = "Lỗi khi hoàn tất thanh toán";
-                    if (response.code() == 400) {
-                        errorMsg = "Không thể hoàn tất thanh toán từ trạng thái hiện tại";
-                    }
-                    Toast.makeText(PaymentDetailActivity.this, errorMsg, Toast.LENGTH_SHORT).show();
+                String status = currentPayment.getPaymentStatus();
+                String message = "";
+                if ("processing".equalsIgnoreCase(status)) {
+                    message = "Thanh toán đang được xử lý";
+                } else if ("complete".equalsIgnoreCase(status)) {
+                    message = "Thanh toán đã hoàn tất";
                 }
-            }
 
-            @Override
-            public void onFailure(Call<Payment> call, Throwable t) {
-                binding.progressBar.setVisibility(View.GONE);
-                Toast.makeText(PaymentDetailActivity.this,
-                        "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(PaymentDetailActivity.this, message, Toast.LENGTH_SHORT).show();
+            } else {
+                String errorMsg = "Lỗi khi cập nhật trạng thái thanh toán";
+                if (response.code() == 400) {
+                    errorMsg = "Không thể cập nhật từ trạng thái hiện tại";
+                }
+                Toast.makeText(PaymentDetailActivity.this, errorMsg, Toast.LENGTH_SHORT).show();
             }
-        });
-    }
+        }
+
+        @Override
+        public void onFailure(Call<Payment> call, Throwable t) {
+            binding.progressBar.setVisibility(View.GONE);
+            Toast.makeText(PaymentDetailActivity.this,
+                    "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    };
 
     private void showFailPaymentDialog() {
         new AlertDialog.Builder(this)
@@ -357,14 +294,10 @@ public class PaymentDetailActivity extends AppCompatActivity {
                 return "Chờ thanh toán";
             case "processing":
                 return "Đang xử lý";
-            case "paid":
-                return "Đã thanh toán";
+            case "complete":
+                return "Thành công";
             case "failed":
                 return "Thất bại";
-            case "refunded":
-                return "Đã hoàn tiền";
-            case "cancelled":
-                return "Đã hủy";
             default:
                 return status;
         }
@@ -378,14 +311,10 @@ public class PaymentDetailActivity extends AppCompatActivity {
                 return getColor(R.color.orange_600);
             case "processing":
                 return getColor(R.color.blue_600);
-            case "paid":
+            case "complete":
                 return getColor(R.color.green_600);
             case "failed":
                 return getColor(R.color.red_600);
-            case "refunded":
-                return getColor(R.color.purple_600);
-            case "cancelled":
-                return getColor(R.color.gray_600);
             default:
                 return getColor(R.color.gray_600);
         }
@@ -421,20 +350,6 @@ public class PaymentDetailActivity extends AppCompatActivity {
         } catch (Exception e) {
             return dateString;
         }
-    }
-
-    private boolean canProcessPayment(String status) {
-        return "pending".equalsIgnoreCase(status);
-    }
-
-    private boolean canCompletePayment(String status) {
-        return "pending".equalsIgnoreCase(status) ||
-                "processing".equalsIgnoreCase(status);
-    }
-
-    private boolean canFailPayment(String status) {
-        return "pending".equalsIgnoreCase(status) ||
-                "processing".equalsIgnoreCase(status);
     }
 
     @Override

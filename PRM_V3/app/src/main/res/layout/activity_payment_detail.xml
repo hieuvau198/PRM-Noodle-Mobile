@@ -86,7 +86,7 @@
                                 android:textColor="@color/orange_600"
                                 android:textSize="16sp"
                                 android:textStyle="bold"
-                                tools:text="Thanh toán #1" />
+                                tools:text="Thanh toán #17" />
 
                         </LinearLayout>
 
@@ -110,7 +110,7 @@
                                 android:textColor="@android:color/black"
                                 android:textSize="16sp"
                                 android:textStyle="bold"
-                                tools:text="Đơn hàng #24" />
+                                tools:text="Đơn hàng #460" />
 
                         </LinearLayout>
 
@@ -142,7 +142,7 @@
                                 android:textColor="@color/green_600"
                                 android:textSize="20sp"
                                 android:textStyle="bold"
-                                tools:text="125.000₫" />
+                                tools:text="235.000₫" />
 
                         </LinearLayout>
 
@@ -196,7 +196,7 @@
                                 android:layout_height="wrap_content"
                                 android:textColor="@android:color/black"
                                 android:textSize="16sp"
-                                tools:text="Ví điện tử" />
+                                tools:text="Thẻ tín dụng" />
 
                         </LinearLayout>
 
@@ -219,7 +219,7 @@
                                 android:layout_height="wrap_content"
                                 android:textColor="@android:color/black"
                                 android:textSize="16sp"
-                                tools:text="TXN123456" />
+                                tools:text="Chưa có" />
 
                         </LinearLayout>
 
@@ -263,7 +263,7 @@
                         android:textColor="@android:color/black"
                         android:textSize="16sp"
                         android:textStyle="bold"
-                        tools:text="Phạm Nguyễn Đan Thu" />
+                        tools:text="hoanvngoc" />
 
                     <TextView
                         android:id="@+id/tv_customer_id"
@@ -409,158 +409,34 @@
 
                     </LinearLayout>
 
-                    <LinearLayout
-                        android:id="@+id/layout_processed_date"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:orientation="horizontal"
-                        android:visibility="gone">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Ngày xử lý"
-                                android:textColor="@color/gray_600"
-                                android:textSize="12sp" />
-
-                            <TextView
-                                android:id="@+id/tv_processed_at"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textColor="@android:color/black"
-                                android:textSize="14sp"
-                                tools:text="12/07/2025 10:20" />
-
-                        </LinearLayout>
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/layout_completed_date"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:orientation="horizontal"
-                        android:visibility="gone">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Ngày hoàn thành"
-                                android:textColor="@color/gray_600"
-                                android:textSize="12sp" />
-
-                            <TextView
-                                android:id="@+id/tv_completed_at"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textColor="@android:color/black"
-                                android:textSize="14sp"
-                                tools:text="12/07/2025 11:00" />
-
-                        </LinearLayout>
-
-                    </LinearLayout>
-
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Deletion Information Card -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/layout_deletion_info"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:visibility="gone"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp"
-                app:cardBackgroundColor="@color/red_50">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Thông tin xóa"
-                        android:textColor="@color/red_600"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:layout_marginVertical="8dp"
-                        android:background="@color/red_600" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Lý do xóa:"
-                        android:textColor="@color/red_600"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tv_deletion_reason"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:textColor="@color/red_600"
-                        android:textSize="14sp"
-                        tools:text="Thanh toán không hợp lệ" />
-
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- Action Buttons -->
+            <!-- Action Buttons - Chỉ 2 nút -->
             <LinearLayout
                 android:id="@+id/layout_action_buttons"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="80dp"
-                android:orientation="vertical">
+                android:orientation="horizontal">
 
                 <Button
                     android:id="@+id/btn_process_payment"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="48dp"
-                    android:layout_marginBottom="8dp"
-                    android:background="@drawable/bg_payment_processing"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/bg_status_completed"
                     android:text="Xử lý thanh toán"
                     android:textColor="@android:color/white"
                     android:textStyle="bold" />
 
                 <Button
-                    android:id="@+id/btn_complete_payment"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginBottom="8dp"
-                    android:background="@drawable/bg_status_completed"
-                    android:text="Hoàn tất thanh toán"
-                    android:textColor="@android:color/white"
-                    android:textStyle="bold" />
-
-                <Button
                     android:id="@+id/btn_fail_payment"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
                     android:background="@drawable/bg_payment_failed"
                     android:text="Đánh dấu thất bại"
                     android:textColor="@android:color/white"

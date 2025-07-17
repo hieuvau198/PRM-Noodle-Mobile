@@ -158,7 +158,6 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
         isLoading = true;
         currentPage = 1;
 
-        // Enable auto-refresh
         paymentViewModel.enableAutoRefresh(true);
 
         // Load based on current filter
@@ -302,8 +301,6 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
         paymentViewModel.getStatusMessage().observe(getViewLifecycleOwner(), message -> {
             if (message != null && !message.isEmpty()) {
                 Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
-
-                // Refresh data after status update
                 scheduleAutoRefresh();
             }
         });
@@ -314,27 +311,30 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
     @Override
     public void onProcessPayment(Payment payment) {
         Log.d(TAG, "onProcessPayment: " + payment.getPaymentId());
+        String currentStatus = payment.getPaymentStatus();
 
-        // Optimistic UI update
-        if (shouldRemoveFromCurrentFilter("processing")) {
-            removePaymentFromList(payment.getPaymentId());
+        if ("pending".equalsIgnoreCase(currentStatus)) {
+            // Move to processing
+            processPaymentStatus(payment, "processing");
+        } else if ("processing".equalsIgnoreCase(currentStatus)) {
+            // Move to paid (complete)
+            processPaymentStatus(payment, "paid");
         }
-
-        paymentViewModel.processPayment(payment.getPaymentId());
-        Toast.makeText(getContext(), "Đang xử lý thanh toán...", Toast.LENGTH_SHORT).show();
     }
 
-    @Override
-    public void onCompletePayment(Payment payment) {
-        Log.d(TAG, "onCompletePayment: " + payment.getPaymentId());
-
+    private void processPaymentStatus(Payment payment, String targetStatus) {
         // Optimistic UI update
-        if (shouldRemoveFromCurrentFilter("paid")) {
+        if (shouldRemoveFromCurrentFilter(targetStatus)) {
             removePaymentFromList(payment.getPaymentId());
         }
 
-        paymentViewModel.completePayment(payment.getPaymentId());
-        Toast.makeText(getContext(), "Đang hoàn tất thanh toán...", Toast.LENGTH_SHORT).show();
+        if ("processing".equalsIgnoreCase(targetStatus)) {
+            paymentViewModel.processPayment(payment.getPaymentId());
+            Toast.makeText(getContext(), "Đang xử lý thanh toán...", Toast.LENGTH_SHORT).show();
+        } else if ("paid".equalsIgnoreCase(targetStatus)) {
+            paymentViewModel.completePayment(payment.getPaymentId());
+            Toast.makeText(getContext(), "Đang hoàn tất thanh toán...", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
@@ -352,7 +352,7 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
                     }
 
                     paymentViewModel.failPayment(payment.getPaymentId());
-                    Toast.makeText(getContext(), "Đang cập nhật trạng thái...", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Đang cập nhật trạng thái thất bại...", Toast.LENGTH_SHORT).show();
                 })
                 .setNegativeButton("Hủy", null)
                 .show();
@@ -441,29 +441,6 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
         Log.d(TAG, "Auto refresh " + (enabled ? "enabled" : "disabled"));
     }
 
-    // ========== PUBLIC METHODS ==========
-
-    public void refreshData() {
-        if (paymentViewModel != null) {
-            Log.d(TAG, "Manual refreshData called");
-            refreshDataComplete();
-        }
-    }
-
-    public void loadStatusOptimized(String status) {
-        currentFilter = status;
-        updateTabAppearance();
-        loadFirstPage();
-    }
-
-    public String getCurrentFilter() {
-        return currentFilter;
-    }
-
-    public int getCurrentPaymentsCount() {
-        return allPayments.size();
-    }
-
     // ========== LIFECYCLE METHODS ==========
 
     @Override
@@ -498,52 +475,5 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
 
         setAutoRefresh(false);
         binding = null;
-    }
-
-    // ========== SEARCH AND FILTER METHODS ==========
-
-    public void searchPayments(String query) {
-        if (query == null || query.trim().isEmpty()) {
-            paymentAdapter.setPayments(new ArrayList<>(allPayments));
-            return;
-        }
-
-        List<Payment> filteredPayments = new ArrayList<>();
-        String lowerCaseQuery = query.toLowerCase();
-
-        for (Payment payment : allPayments) {
-            if (payment.getCustomerName() != null &&
-                    payment.getCustomerName().toLowerCase().contains(lowerCaseQuery)) {
-                filteredPayments.add(payment);
-            } else if (String.valueOf(payment.getOrderId()).contains(lowerCaseQuery)) {
-                filteredPayments.add(payment);
-            } else if (String.valueOf(payment.getPaymentId()).contains(lowerCaseQuery)) {
-                filteredPayments.add(payment);
-            } else if (payment.getTransactionReference() != null &&
-                    payment.getTransactionReference().toLowerCase().contains(lowerCaseQuery)) {
-                filteredPayments.add(payment);
-            }
-        }
-
-        paymentAdapter.setPayments(filteredPayments);
-    }
-
-    // ========== DEBUG METHODS ==========
-
-    public void forceRefresh() {
-        Log.d(TAG, "Force refresh triggered");
-        refreshDataComplete();
-    }
-
-    public void retryLastOperation() {
-        if (!isLoading) {
-            Log.d(TAG, "Retrying last operation");
-            loadFirstPage();
-        }
-    }
-
-    public void clearErrorAndReload() {
-        paymentViewModel.clearError();
-        refreshDataComplete();
     }
 }
