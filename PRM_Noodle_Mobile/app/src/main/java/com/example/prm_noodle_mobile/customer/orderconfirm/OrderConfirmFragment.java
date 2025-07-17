@@ -89,8 +89,7 @@ public class OrderConfirmFragment extends Fragment {
         confirmOrderButton.setOnClickListener(v -> confirmOrder());
 
         return view;
-    
-}
+    }
 
     private void loadProducts() {
         ProductApi api = ApiClient.getClient(getContext()).create(ProductApi.class);
@@ -184,39 +183,11 @@ public class OrderConfirmFragment extends Fragment {
         api.createOrder(order).enqueue(new Callback<com.example.prm_noodle_mobile.data.model.OrderCreateResponse>() {
             @Override
             public void onResponse(Call<com.example.prm_noodle_mobile.data.model.OrderCreateResponse> call, Response<com.example.prm_noodle_mobile.data.model.OrderCreateResponse> response) {
-        // ...existing code...
                 if (response.isSuccessful() && response.body() != null) {
                     int orderId = response.body().getOrderId();
                     // Tính tổng tiền thực tế
-                    double amount = 0;
-                    for (OrderItem item : orderItems) {
-                        double toppingTotal = 0;
-                        if (item.getToppings() != null) {
-                            for (com.example.prm_noodle_mobile.data.model.ToppingOrder topping : item.getToppings()) {
-                                for (com.example.prm_noodle_mobile.data.model.Topping t : toppingList) {
-                                    if (t.getToppingId() == topping.getToppingId()) {
-                                        toppingTotal += t.getPrice() * topping.getQuantity();
-                                    }
-                                }
-                            }
-                        }
-                        double productPrice = 0;
-                        for (Product p : productList) {
-                            if (p.getProductId() == item.getProductId()) {
-                                productPrice = p.getBasePrice();
-                                break;
-                            }
-                        }
-                        amount += (productPrice + toppingTotal) * item.getQuantity();
-                    }
-                    for (OrderCombo combo : orderCombos) {
-                        for (Combo c : comboList) {
-                            if (c.getComboId() == combo.getComboId()) {
-                                amount += c.getPrice() * combo.getQuantity();
-                                break;
-                            }
-                        }
-                    }
+                    double amount = calculateTotalAmount();
+
                     UserSessionManager sessionManager = new UserSessionManager(getContext());
                     String customerName = null;
                     try {
@@ -226,6 +197,7 @@ public class OrderConfirmFragment extends Fragment {
                         Toast.makeText(getContext(), "Không lấy được tên khách hàng, vui lòng đăng nhập lại!", Toast.LENGTH_SHORT).show();
                         return;
                     }
+
                     // Gọi API Payment
                     Payment payment = new Payment(orderId, userId, customerName, amount, paymentMethod);
                     PaymentApi paymentApi = ApiClient.getClient(getContext()).create(PaymentApi.class);
@@ -233,11 +205,8 @@ public class OrderConfirmFragment extends Fragment {
                         @Override
                         public void onResponse(Call<Void> call, Response<Void> response) {
                             if (response.isSuccessful()) {
-                                Toast.makeText(getContext(), "Thanh toán thành công!", Toast.LENGTH_SHORT).show();
-                                CartManager.getInstance().clearCart();
-                                if (getActivity() != null) {
-                                    getActivity().onBackPressed();
-                                }
+                                // Sau khi thanh toán thành công, gọi API để hoàn tất order
+                                completeOrder(orderId);
                             } else {
                                 Toast.makeText(getContext(), "Thanh toán thất bại!", Toast.LENGTH_SHORT).show();
                             }
@@ -256,6 +225,64 @@ public class OrderConfirmFragment extends Fragment {
                 Toast.makeText(getContext(), "Lỗi kết nối khi tạo đơn hàng!", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void completeOrder(int orderId) {
+        OrderApi api = ApiClient.getClient(getContext()).create(OrderApi.class);
+        api.completeOrder(orderId).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(getContext(), "Đặt hàng thành công!", Toast.LENGTH_SHORT).show();
+                    CartManager.getInstance().clearCart();
+                    // Không quay lại màn trước, chỉ ở lại trang order
+                } else {
+                    Toast.makeText(getContext(), "Không thể hoàn tất đơn hàng!", Toast.LENGTH_SHORT).show();
+                }
+            }
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Toast.makeText(getContext(), "Lỗi kết nối khi hoàn tất đơn hàng!", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private double calculateTotalAmount() {
+        double amount = 0;
+
+        // Tính tổng tiền từ OrderItems
+        for (OrderItem item : orderItems) {
+            double toppingTotal = 0;
+            if (item.getToppings() != null) {
+                for (com.example.prm_noodle_mobile.data.model.ToppingOrder topping : item.getToppings()) {
+                    for (com.example.prm_noodle_mobile.data.model.Topping t : toppingList) {
+                        if (t.getToppingId() == topping.getToppingId()) {
+                            toppingTotal += t.getPrice() * topping.getQuantity();
+                        }
+                    }
+                }
+            }
+            double productPrice = 0;
+            for (Product p : productList) {
+                if (p.getProductId() == item.getProductId()) {
+                    productPrice = p.getBasePrice();
+                    break;
+                }
+            }
+            amount += (productPrice + toppingTotal) * item.getQuantity();
+        }
+
+        // Tính tổng tiền từ OrderCombos
+        for (OrderCombo combo : orderCombos) {
+            for (Combo c : comboList) {
+                if (c.getComboId() == combo.getComboId()) {
+                    amount += c.getPrice() * combo.getQuantity();
+                    break;
+                }
+            }
+        }
+
+        return amount;
     }
 
     private String getPaymentMethodString(int radioButtonId) {

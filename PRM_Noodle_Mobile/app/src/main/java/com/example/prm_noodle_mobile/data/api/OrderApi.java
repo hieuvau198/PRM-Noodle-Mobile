@@ -6,6 +6,7 @@ import com.example.prm_noodle_mobile.data.model.OrderResponse;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
+import retrofit2.http.PATCH;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
@@ -34,4 +35,9 @@ public interface OrderApi {
         @Query("page") int page,
         @Query("pageSize") int pageSize
     );
-} 
+
+    // Thêm API để đánh dấu order đã hoàn tất
+    @PATCH("/api/Order/{orderId}/complete")
+    Call<Void> completeOrder(@Path("orderId") int orderId);
+
+}
