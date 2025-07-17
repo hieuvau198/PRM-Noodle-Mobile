@@ -2,6 +2,7 @@ package com.example.prm_v3.api;
 
 import com.example.prm_v3.model.Order;
 import com.example.prm_v3.model.OrderResponse;
+import com.example.prm_v3.model.PaymentStatistics;
 import com.example.prm_v3.model.Product;
 import com.example.prm_v3.model.Combo;
 import com.example.prm_v3.model.Topping;
@@ -175,9 +176,46 @@ public interface ApiService {
     Call<List<Topping>> getAvailableToppings();
 
     // ========== PAYMENT APIs ==========
+    @GET("api/Payments")
+    Call<List<Payment>> getPayments();
+
+    // Create new payment
     @POST("api/Payments")
     Call<Payment> createPayment(@Body Payment payment);
 
-    @GET("api/Payments")
-    Call<List<Payment>> getPayments();
+    // Process payment (pending -> processing)
+    @PATCH("api/Payments/{id}/process")
+    Call<Payment> processPayment(@Path("id") int paymentId);
+
+    // Complete payment (processing -> paid)
+    @PATCH("api/Payments/{id}/complete")
+    Call<Payment> completePayment(@Path("id") int paymentId);
+
+    // Fail payment (mark as failed)
+    @PATCH("api/Payments/{id}/fail")
+    Call<Payment> failPayment(@Path("id") int paymentId);
+
+    // Get payment by ID
+    @GET("api/Payments/{id}")
+    Call<Payment> getPaymentById(@Path("id") int paymentId);
+
+    // Get payments by order ID
+    @GET("api/Payments/order/{orderId}")
+    Call<List<Payment>> getPaymentsByOrderId(@Path("orderId") int orderId);
+
+    // Get payments by customer ID
+    @GET("api/Payments/customer/{customerId}")
+    Call<List<Payment>> getPaymentsByCustomerId(@Path("customerId") int customerId);
+
+    // Search payments by date range
+    @GET("api/Payments/search")
+    Call<List<Payment>> searchPayments(@Query("startDate") String startDate,
+                                       @Query("endDate") String endDate,
+                                       @Query("status") String status,
+                                       @Query("method") String method);
+
+    // Get payment statistics
+    @GET("api/Payments/statistics")
+    Call<PaymentStatistics> getPaymentStatistics(@Query("startDate") String startDate,
+                                                 @Query("endDate") String endDate);
 }
