@@ -141,7 +141,7 @@ public class CreateOrderFragment extends Fragment implements
         // Observe total items
         viewModel.getTotalItems().observe(getViewLifecycleOwner(), items -> {
             if (items != null) {
-                String buttonText = "🛒 Tạo đơn hàng " + viewModel.getCartSummary();
+                String buttonText = "Tạo đơn hàng " + viewModel.getCartSummary();
                 binding.btnCreateOrder.setText(buttonText);
                 binding.btnCreateOrder.setEnabled(items > 0);
             }
@@ -237,15 +237,8 @@ public class CreateOrderFragment extends Fragment implements
     }
 
     private String getSelectedPaymentMethod() {
-        if (binding.rbCash.isChecked()) {
-            return "cash";
-        } else if (binding.rbDigitalWallet.isChecked()) {
-            return "digital_wallet";
-        } else if (binding.rbCard.isChecked()) {
-            return "credit_card";
-        } else {
-            return "cash"; // default
-        }
+       return "cash";
+
     }
 
     // QUAN TRỌNG: Method này clear form hoàn toàn
@@ -274,7 +267,7 @@ public class CreateOrderFragment extends Fragment implements
         // Reset UI manually
         binding.tvSubtotal.setText("0đ");
         binding.tvTotal.setText("0đ");
-        binding.btnCreateOrder.setText("🛒 Tạo đơn hàng");
+        binding.btnCreateOrder.setText(" Tạo đơn hàng");
         binding.btnCreateOrder.setEnabled(false);
     }
 

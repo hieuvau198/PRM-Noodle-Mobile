@@ -284,20 +284,6 @@
                             android:text=" Tiền mặt"
                             android:textSize="14sp" />
 
-                        <RadioButton
-                            android:id="@+id/rb_digital_wallet"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text=" Ví điện tử"
-                            android:textSize="14sp" />
-
-                        <RadioButton
-                            android:id="@+id/rb_card"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text=" Thẻ tín dụng"
-                            android:textSize="14sp" />
-
                     </RadioGroup>
 
                 </LinearLayout>
