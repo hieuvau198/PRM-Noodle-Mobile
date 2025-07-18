@@ -250,6 +250,13 @@ public class OrderDetailActivity extends AppCompatActivity {
     }
 
     private void updateButtons(String status) {
+        if (status == null) {
+            // Hide all buttons if status is null
+            binding.btnUpdateStatus.setVisibility(View.GONE);
+            binding.btnCancelOrder.setVisibility(View.GONE);
+            return;
+        }
+        
         boolean canCancel = StatusHelper.canCancelOrder(status);
         boolean canCreateInvoice = StatusHelper.canCreateInvoice(status);
         boolean orderHasPayment = hasPayment(orderId); // Kiểm tra xem đã có payment chưa
@@ -473,7 +480,11 @@ public class OrderDetailActivity extends AppCompatActivity {
     }
 
     private int getStatusColor(String status) {
-        switch (status) {
+        if (status == null) {
+            return getColor(R.color.gray_600);
+        }
+        
+        switch (status.toLowerCase()) {
             case "pending": return getColor(R.color.orange_600);
             case "confirmed": return getColor(R.color.blue_600);
             case "preparing": return getColor(R.color.yellow_600);

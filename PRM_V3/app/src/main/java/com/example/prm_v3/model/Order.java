@@ -64,7 +64,9 @@ public class Order {
     public String getUserName() { return userName; }
     public void setUserName(String userName) { this.userName = userName; }
 
-    public String getOrderStatus() { return orderStatus; }
+    public String getOrderStatus() { 
+        return orderStatus != null ? orderStatus : "pending"; // Trả về "pending" nếu null
+    }
     public void setOrderStatus(String orderStatus) { this.orderStatus = orderStatus; }
 
     public double getTotalAmount() { return totalAmount; }

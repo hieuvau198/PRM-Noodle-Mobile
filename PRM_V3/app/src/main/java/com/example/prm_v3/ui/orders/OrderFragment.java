@@ -531,6 +531,10 @@ public class OrderFragment extends Fragment implements OrderAdapter.OnOrderActio
     }
 
     private String getNextStatus(String currentStatus) {
+        if (currentStatus == null) {
+            return null;
+        }
+        
         switch (currentStatus.toLowerCase()) {
             case "pending": return "confirmed";
             case "confirmed": return "preparing";
