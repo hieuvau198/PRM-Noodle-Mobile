@@ -114,16 +114,38 @@ public class PaymentRepository {
      */
     private List<Payment> filterPaymentsByStatus(List<Payment> allPayments, String status) {
         if (status == null || status.equals("all")) {
+            Log.d(TAG, "filterPaymentsByStatus: Returning all " + allPayments.size() + " payments");
             return allPayments;
         }
 
         List<Payment> filtered = new ArrayList<>();
+        Log.d(TAG, "filterPaymentsByStatus: Filtering " + allPayments.size() + " payments by status: " + status);
+        
         for (Payment payment : allPayments) {
-            if (payment.getPaymentStatus() != null &&
-                    payment.getPaymentStatus().equalsIgnoreCase(status)) {
-                filtered.add(payment);
+            if (payment.getPaymentStatus() != null) {
+                String paymentStatus = payment.getPaymentStatus().toLowerCase();
+                Log.d(TAG, "Payment #" + payment.getPaymentId() + " has status: " + paymentStatus);
+                
+                // Skip failed payments as there's no failed tab
+                if (paymentStatus.equals("failed")) {
+                    Log.d(TAG, "Skipping failed payment #" + payment.getPaymentId());
+                    continue;
+                }
+                
+                // Handle both "paid" and "complete" for the paid filter
+                if (status.equalsIgnoreCase("paid")) {
+                    if (paymentStatus.equals("paid") || paymentStatus.equals("complete")) {
+                        filtered.add(payment);
+                        Log.d(TAG, "Added payment #" + payment.getPaymentId() + " (status: " + paymentStatus + ") to paid filter");
+                    }
+                } else if (paymentStatus.equals(status.toLowerCase())) {
+                    filtered.add(payment);
+                    Log.d(TAG, "Added payment #" + payment.getPaymentId() + " (status: " + paymentStatus + ") to " + status + " filter");
+                }
             }
         }
+        
+        Log.d(TAG, "filterPaymentsByStatus: Filtered result contains " + filtered.size() + " payments for status: " + status);
         return filtered;
     }
 
@@ -139,13 +161,16 @@ public class PaymentRepository {
         call.enqueue(new Callback<Payment>() {
             @Override
             public void onResponse(Call<Payment> call, Response<Payment> response) {
-                if (response.isSuccessful() && response.body() != null) {
+                // Accept both 200 with body and 204 no content as success
+                if (response.isSuccessful()) {
+                    Log.d(TAG, "processPayment success: " + response.code());
                     if (listener != null) {
                         listener.onSuccess("Thanh toán đã được xử lý");
                     }
                     refreshCurrentData();
                 } else {
                     String errorMsg = handleErrorResponse(response.code());
+                    Log.e(TAG, "processPayment error: " + errorMsg);
                     if (listener != null) {
                         listener.onError(errorMsg);
                     }
@@ -155,6 +180,7 @@ public class PaymentRepository {
             @Override
             public void onFailure(Call<Payment> call, Throwable t) {
                 String errorMsg = "Lỗi kết nối: " + t.getMessage();
+                Log.e(TAG, "processPayment failure: " + errorMsg, t);
                 if (listener != null) {
                     listener.onError(errorMsg);
                 }
@@ -172,13 +198,16 @@ public class PaymentRepository {
         call.enqueue(new Callback<Payment>() {
             @Override
             public void onResponse(Call<Payment> call, Response<Payment> response) {
-                if (response.isSuccessful() && response.body() != null) {
+                // Accept both 200 with body and 204 no content as success
+                if (response.isSuccessful()) {
+                    Log.d(TAG, "completePayment success: " + response.code());
                     if (listener != null) {
                         listener.onSuccess("Thanh toán đã hoàn tất");
                     }
                     refreshCurrentData();
                 } else {
                     String errorMsg = handleErrorResponse(response.code());
+                    Log.e(TAG, "completePayment error: " + errorMsg);
                     if (listener != null) {
                         listener.onError(errorMsg);
                     }
@@ -188,6 +217,7 @@ public class PaymentRepository {
             @Override
             public void onFailure(Call<Payment> call, Throwable t) {
                 String errorMsg = "Lỗi kết nối: " + t.getMessage();
+                Log.e(TAG, "completePayment failure: " + errorMsg, t);
                 if (listener != null) {
                     listener.onError(errorMsg);
                 }
@@ -205,13 +235,16 @@ public class PaymentRepository {
         call.enqueue(new Callback<Payment>() {
             @Override
             public void onResponse(Call<Payment> call, Response<Payment> response) {
-                if (response.isSuccessful() && response.body() != null) {
+                // Accept both 200 with body and 204 no content as success
+                if (response.isSuccessful()) {
+                    Log.d(TAG, "failPayment success: " + response.code());
                     if (listener != null) {
                         listener.onSuccess("Thanh toán đã được đánh dấu thất bại");
                     }
                     refreshCurrentData();
                 } else {
                     String errorMsg = handleErrorResponse(response.code());
+                    Log.e(TAG, "failPayment error: " + errorMsg);
                     if (listener != null) {
                         listener.onError(errorMsg);
                     }
@@ -221,6 +254,7 @@ public class PaymentRepository {
             @Override
             public void onFailure(Call<Payment> call, Throwable t) {
                 String errorMsg = "Lỗi kết nối: " + t.getMessage();
+                Log.e(TAG, "failPayment failure: " + errorMsg, t);
                 if (listener != null) {
                     listener.onError(errorMsg);
                 }

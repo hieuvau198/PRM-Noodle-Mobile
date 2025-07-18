@@ -94,17 +94,6 @@
                 android:textColor="@color/gray_600"
                 android:textSize="14sp" />
 
-            <TextView
-                android:id="@+id/tab_failed"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="8dp"
-                android:background="@drawable/bg_tab_normal"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="8dp"
-                android:text="Thất bại"
-                android:textColor="@color/gray_600"
-                android:textSize="14sp" />
         </LinearLayout>
     </HorizontalScrollView>
 

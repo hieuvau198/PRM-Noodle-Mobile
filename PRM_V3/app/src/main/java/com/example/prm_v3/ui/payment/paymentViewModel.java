@@ -68,10 +68,6 @@ public class paymentViewModel extends ViewModel {
         loadPaymentsByStatus("paid");
     }
 
-    public void loadFailedPayments() {
-        loadPaymentsByStatus("failed");
-    }
-
     public void loadAllPayments() {
         loadPaymentsByStatus("all");
     }
@@ -198,7 +194,6 @@ public class paymentViewModel extends ViewModel {
     public void loadPaymentStatistics() {
         loadPendingPayments();
         loadPaidPayments();
-        loadFailedPayments();
     }
 
     // ========== SEARCH & FILTER ==========

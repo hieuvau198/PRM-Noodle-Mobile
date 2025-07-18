@@ -261,16 +261,27 @@ public class PaymentDetailActivity extends AppCompatActivity {
             public void onResponse(Call<Payment> call, Response<Payment> response) {
                 binding.progressBar.setVisibility(View.GONE);
 
-                if (response.isSuccessful() && response.body() != null) {
-                    currentPayment = response.body();
-                    updateUI(currentPayment);
+                // Accept both 200 with body and 204 no content as success
+                if (response.isSuccessful()) {
+                    Log.d(TAG, "failPayment success: " + response.code());
+                    
+                    // If we got a body back, update the UI with new data
+                    if (response.body() != null) {
+                        currentPayment = response.body();
+                        updateUI(currentPayment);
+                    }
+                    
                     Toast.makeText(PaymentDetailActivity.this,
                             "Thanh toán đã được đánh dấu thất bại", Toast.LENGTH_SHORT).show();
+                    
+                    // Go back to previous screen since payment is now failed
+                    finish();
                 } else {
                     String errorMsg = "Lỗi khi cập nhật trạng thái thanh toán";
                     if (response.code() == 400) {
                         errorMsg = "Không thể đánh dấu thất bại từ trạng thái hiện tại";
                     }
+                    Log.e(TAG, "failPayment error: " + response.code() + " - " + errorMsg);
                     Toast.makeText(PaymentDetailActivity.this, errorMsg, Toast.LENGTH_SHORT).show();
                 }
             }
@@ -295,7 +306,8 @@ public class PaymentDetailActivity extends AppCompatActivity {
             case "processing":
                 return "Đang xử lý";
             case "complete":
-                return "Thành công";
+            case "paid":
+                return "Đã thanh toán";
             case "failed":
                 return "Thất bại";
             default:
@@ -312,6 +324,7 @@ public class PaymentDetailActivity extends AppCompatActivity {
             case "processing":
                 return getColor(R.color.blue_600);
             case "complete":
+            case "paid":
                 return getColor(R.color.green_600);
             case "failed":
                 return getColor(R.color.red_600);

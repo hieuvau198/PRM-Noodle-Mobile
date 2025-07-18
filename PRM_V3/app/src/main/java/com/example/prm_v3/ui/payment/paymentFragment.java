@@ -51,7 +51,7 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
     private boolean shouldAutoRefresh = true;
 
     // Tab views
-    private TextView tabAll, tabPending, tabProcessing, tabPaid, tabFailed;
+    private TextView tabAll, tabPending, tabProcessing, tabPaid;
     private RecyclerView recyclerViewPayments;
     private SwipeRefreshLayout swipeRefreshLayout;
     private ProgressBar progressBar;
@@ -81,7 +81,6 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
         tabPending = binding.tabPending;
         tabProcessing = binding.tabProcessing;
         tabPaid = binding.tabPaid;
-        tabFailed = binding.tabFailed;
 
         recyclerViewPayments = binding.recyclerViewPayments;
         swipeRefreshLayout = binding.swipeRefreshLayout;
@@ -132,13 +131,14 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
         tabPending.setOnClickListener(v -> selectTab("pending"));
         tabProcessing.setOnClickListener(v -> selectTab("processing"));
         tabPaid.setOnClickListener(v -> selectTab("paid"));
-        tabFailed.setOnClickListener(v -> selectTab("failed"));
     }
 
     private void selectTab(String filter) {
         Log.d(TAG, "selectTab: " + filter);
         currentFilter = filter;
         updateTabAppearance();
+        
+        Log.d(TAG, "Starting refresh for filter: " + filter);
         refreshDataComplete();
     }
 
@@ -190,7 +190,6 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
         resetTab(tabPending);
         resetTab(tabProcessing);
         resetTab(tabPaid);
-        resetTab(tabFailed);
 
         // Highlight selected tab
         TextView selectedTab = getSelectedTab();
@@ -211,7 +210,6 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
             case "pending": return tabPending;
             case "processing": return tabProcessing;
             case "paid": return tabPaid;
-            case "failed": return tabFailed;
             default: return tabAll;
         }
     }
@@ -346,10 +344,8 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
                 .setTitle("Xác nhận")
                 .setMessage("Bạn có chắc muốn đánh dấu thanh toán này là thất bại?")
                 .setPositiveButton("Đồng ý", (dialog, which) -> {
-                    // Optimistic UI update
-                    if (shouldRemoveFromCurrentFilter("failed")) {
-                        removePaymentFromList(payment.getPaymentId());
-                    }
+                    // Always remove failed payments from current view since there's no failed tab
+                    removePaymentFromList(payment.getPaymentId());
 
                     paymentViewModel.failPayment(payment.getPaymentId());
                     Toast.makeText(getContext(), "Đang cập nhật trạng thái thất bại...", Toast.LENGTH_SHORT).show();
@@ -371,6 +367,12 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
         if (currentFilter.equals("all")) {
             return false; // "all" tab shows all payments
         }
+        
+        // Handle both "paid" and "complete" for the paid filter
+        if (currentFilter.equalsIgnoreCase("paid")) {
+            return !(newStatus.equalsIgnoreCase("paid") || newStatus.equalsIgnoreCase("complete"));
+        }
+        
         return !currentFilter.equalsIgnoreCase(newStatus);
     }
 
