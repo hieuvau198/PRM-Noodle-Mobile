@@ -20,7 +20,7 @@ import retrofit2.Response;
 
 public class RegisterActivity extends AppCompatActivity {
 
-    private EditText etUsername, etFullName, etEmail, etPhone, etAddress, etPassword, etConfirmPassword;
+    private EditText etUsername, etFullName, etEmail, etPhone, etAddress, etPassword;
     private Button btnRegister;
     private AuthApi authApi;
 
@@ -52,17 +52,11 @@ public class RegisterActivity extends AppCompatActivity {
         String phone = etPhone.getText().toString().trim();
         String address = etAddress.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
-        String confirmPassword = etConfirmPassword.getText().toString().trim();
 
         if (TextUtils.isEmpty(username) || TextUtils.isEmpty(fullName) || TextUtils.isEmpty(email)
                 || TextUtils.isEmpty(phone) || TextUtils.isEmpty(address)
-                || TextUtils.isEmpty(password) || TextUtils.isEmpty(confirmPassword)) {
+                || TextUtils.isEmpty(password)) {
             Toast.makeText(this, "Vui lòng nhập đầy đủ thông tin", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (!password.equals(confirmPassword)) {
-            etConfirmPassword.setError("Mật khẩu xác nhận không khớp");
             return;
         }
 
@@ -70,7 +64,6 @@ public class RegisterActivity extends AppCompatActivity {
         btnRegister.setText("Đang đăng ký...");
 
         UserRegisterRequest request = new UserRegisterRequest(username, password, email, fullName, phone, address);
-
         authApi.register(request).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
@@ -82,6 +75,13 @@ public class RegisterActivity extends AppCompatActivity {
                     startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
                     finish();
                 } else {
+                    String errorBody = "";
+                    try {
+                        if (response.errorBody() != null) {
+                            errorBody = response.errorBody().string();
+                        }
+                    } catch (Exception e) {}
+                    android.util.Log.e("Register", "Đăng ký thất bại! Code: " + response.code() + ", message: " + response.message() + ", errorBody: " + errorBody);
                     Toast.makeText(RegisterActivity.this, "Đăng ký thất bại: " + response.code(), Toast.LENGTH_SHORT).show();
                 }
             }
