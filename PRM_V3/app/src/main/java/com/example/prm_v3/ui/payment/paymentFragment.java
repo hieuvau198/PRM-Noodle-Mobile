@@ -1,5 +1,7 @@
+// ===== FIXED paymentFragment.java - All errors resolved =====
 package com.example.prm_v3.ui.payment;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -26,6 +28,7 @@ import com.example.prm_v3.R;
 import com.example.prm_v3.adapter.PaymentAdapter;
 import com.example.prm_v3.databinding.FragmentPaymentBinding;
 import com.example.prm_v3.model.Payment;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -33,6 +36,7 @@ import java.util.List;
 
 public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymentActionListener {
     private static final String TAG = "paymentFragment";
+    private static final int CREATE_PAYMENT_REQUEST_CODE = 1001;
 
     private FragmentPaymentBinding binding;
     private paymentViewModel paymentViewModel;
@@ -50,12 +54,13 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
     private Handler refreshHandler = new Handler(Looper.getMainLooper());
     private boolean shouldAutoRefresh = true;
 
-    // Tab views
-    private TextView tabAll, tabPending, tabProcessing, tabPaid, tabFailed;
+    // Tab views - FIXED: Use correct variable names
+    private TextView tabAll, tabPending, tabProcessing, tabComplete, tabFailed;
     private RecyclerView recyclerViewPayments;
     private SwipeRefreshLayout swipeRefreshLayout;
     private ProgressBar progressBar;
     private LinearLayout layoutEmptyState, layoutPaginationLoading;
+    private FloatingActionButton fabAddPayment; // FIXED: Add this variable
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -67,6 +72,7 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
         initViews();
         setupRecyclerView();
         setupTabListeners();
+        setupFAB();
         observeViewModel();
 
         // Load initial data
@@ -77,17 +83,24 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
 
     private void initViews() {
         Log.d(TAG, "initViews");
+        View root = binding.getRoot();
+
+        // Tab views
         tabAll = binding.tabAll;
         tabPending = binding.tabPending;
         tabProcessing = binding.tabProcessing;
-        tabPaid = binding.tabPaid;
+        tabComplete = binding.tabComplete;
         tabFailed = binding.tabFailed;
 
+        // Main views - sử dụng tên chính xác từ XML với ViewBinding
         recyclerViewPayments = binding.recyclerViewPayments;
         swipeRefreshLayout = binding.swipeRefreshLayout;
-        progressBar = binding.progressBar;
-        layoutEmptyState = binding.layoutEmptyState;
-        layoutPaginationLoading = binding.layoutPaginationLoading;
+
+        // FIXED: Sử dụng findViewById với tên chính xác từ XML
+        progressBar = root.findViewById(R.id.progress_bar);
+        layoutEmptyState = root.findViewById(R.id.layout_empty_state);
+        layoutPaginationLoading = root.findViewById(R.id.layout_pagination_loading);
+        fabAddPayment = root.findViewById(R.id.fab_add_payment);
     }
 
     private void setupRecyclerView() {
@@ -131,8 +144,19 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
         tabAll.setOnClickListener(v -> selectTab("all"));
         tabPending.setOnClickListener(v -> selectTab("pending"));
         tabProcessing.setOnClickListener(v -> selectTab("processing"));
-        tabPaid.setOnClickListener(v -> selectTab("paid"));
+        tabComplete.setOnClickListener(v -> selectTab("complete"));  // Updated: paid -> complete
         tabFailed.setOnClickListener(v -> selectTab("failed"));
+    }
+
+    private void setupFAB() {
+        // Ensure FAB is visible and functional
+        if (fabAddPayment != null) {
+            fabAddPayment.setVisibility(View.VISIBLE);
+            fabAddPayment.setOnClickListener(v -> {
+                Intent intent = CreatePaymentActivity.newIntent(getContext());
+                startActivityForResult(intent, CREATE_PAYMENT_REQUEST_CODE);
+            });
+        }
     }
 
     private void selectTab(String filter) {
@@ -189,7 +213,7 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
         resetTab(tabAll);
         resetTab(tabPending);
         resetTab(tabProcessing);
-        resetTab(tabPaid);
+        resetTab(tabComplete);  // Updated: paid -> complete
         resetTab(tabFailed);
 
         // Highlight selected tab
@@ -207,12 +231,18 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
 
     private TextView getSelectedTab() {
         switch (currentFilter) {
-            case "all": return tabAll;
-            case "pending": return tabPending;
-            case "processing": return tabProcessing;
-            case "paid": return tabPaid;
-            case "failed": return tabFailed;
-            default: return tabAll;
+            case "all":
+                return tabAll;
+            case "pending":
+                return tabPending;
+            case "processing":
+                return tabProcessing;
+            case "complete":
+                return tabComplete;  // Updated: paid -> complete
+            case "failed":
+                return tabFailed;
+            default:
+                return tabAll;
         }
     }
 
@@ -249,6 +279,8 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
                         if (allPayments.isEmpty()) {
                             recyclerViewPayments.setVisibility(View.GONE);
                             layoutEmptyState.setVisibility(View.VISIBLE);
+                            updateEmptyStateMessage();
+                            showCreatePaymentTutorial();
                         } else {
                             recyclerViewPayments.setVisibility(View.VISIBLE);
                             layoutEmptyState.setVisibility(View.GONE);
@@ -267,6 +299,8 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
                     paymentAdapter.setPayments(new ArrayList<>());
                     recyclerViewPayments.setVisibility(View.GONE);
                     layoutEmptyState.setVisibility(View.VISIBLE);
+                    updateEmptyStateMessage();
+                    showCreatePaymentTutorial();
                 }
                 progressBar.setVisibility(View.GONE);
             }
@@ -306,6 +340,32 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
         });
     }
 
+    private void showCreatePaymentTutorial() {
+        if (allPayments.isEmpty() && currentFilter.equals("all")) {
+            // Show tutorial when no payments exist
+            Toast.makeText(getContext(),
+                    "Nhấn nút + để tạo thanh toán cho đơn hàng",
+                    Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void updateEmptyStateMessage() {
+        TextView emptyMessage = layoutEmptyState.findViewById(R.id.tv_empty_message);
+        if (emptyMessage != null) {
+            String message = "Không có thanh toán nào";
+            if (currentFilter.equals("pending")) {
+                message = "Chưa có thanh toán chờ xử lý\nNhấn nút + để tạo thanh toán mới";
+            } else if (currentFilter.equals("processing")) {
+                message = "Không có thanh toán đang xử lý";
+            } else if (currentFilter.equals("complete")) {  // Updated: paid -> complete
+                message = "Chưa có thanh toán đã hoàn thành";
+            } else if (currentFilter.equals("failed")) {
+                message = "Không có thanh toán thất bại";
+            }
+            emptyMessage.setText(message);
+        }
+    }
+
     // ========== PAYMENT ACTION HANDLERS ==========
 
     @Override
@@ -317,8 +377,8 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
             // Move to processing
             processPaymentStatus(payment, "processing");
         } else if ("processing".equalsIgnoreCase(currentStatus)) {
-            // Move to paid (complete)
-            processPaymentStatus(payment, "paid");
+            // Move to complete (updated from paid)
+            processPaymentStatus(payment, "complete");
         }
     }
 
@@ -331,7 +391,7 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
         if ("processing".equalsIgnoreCase(targetStatus)) {
             paymentViewModel.processPayment(payment.getPaymentId());
             Toast.makeText(getContext(), "Đang xử lý thanh toán...", Toast.LENGTH_SHORT).show();
-        } else if ("paid".equalsIgnoreCase(targetStatus)) {
+        } else if ("complete".equalsIgnoreCase(targetStatus)) {  // Updated: paid -> complete
             paymentViewModel.completePayment(payment.getPaymentId());
             Toast.makeText(getContext(), "Đang hoàn tất thanh toán...", Toast.LENGTH_SHORT).show();
         }
@@ -398,6 +458,7 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
                     if (allPayments.isEmpty()) {
                         recyclerViewPayments.setVisibility(View.GONE);
                         layoutEmptyState.setVisibility(View.VISIBLE);
+                        updateEmptyStateMessage();
                     }
                 });
             }
@@ -441,6 +502,76 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
         Log.d(TAG, "Auto refresh " + (enabled ? "enabled" : "disabled"));
     }
 
+    // ========== ACTIVITY RESULT HANDLER ==========
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == CREATE_PAYMENT_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            // Payment created successfully, refresh the list
+            Log.d(TAG, "Payment created successfully, refreshing list");
+
+            // Show success message
+            Toast.makeText(getContext(), "Thanh toán đã được tạo thành công!", Toast.LENGTH_SHORT).show();
+
+            // Switch to pending tab to show new payment
+            if (!currentFilter.equals("pending")) {
+                selectTab("pending");
+            } else {
+                // If already on pending tab, just refresh
+                refreshDataComplete();
+            }
+        }
+    }
+
+    // ========== PUBLIC METHODS FOR EXTERNAL ACCESS ==========
+
+    /**
+     * Manual refresh method for external calls
+     */
+    public void refreshData() {
+        if (paymentViewModel != null) {
+            Log.d(TAG, "Manual refreshData called");
+            refreshDataComplete();
+        }
+    }
+
+    /**
+     * Load specific status with optimization
+     */
+    public void loadStatusOptimized(String status) {
+        currentFilter = status;
+        updateTabAppearance();
+        loadFirstPage();
+    }
+
+    /**
+     * Get current filter for external access
+     */
+    public String getCurrentFilter() {
+        return currentFilter;
+    }
+
+    /**
+     * Get current payments count
+     */
+    public int getCurrentPaymentsCount() {
+        return allPayments.size();
+    }
+
+    /**
+     * Refresh after payment creation from external source
+     */
+    public void refreshAfterPaymentCreation(String paymentStatus) {
+        Log.d(TAG, "refreshAfterPaymentCreation - paymentStatus: " + paymentStatus);
+
+        // If the new payment status matches current filter, refresh
+        if (currentFilter.equals("all") || currentFilter.equals(paymentStatus)) {
+            refreshDataComplete();
+        }
+    }
+
     // ========== LIFECYCLE METHODS ==========
 
     @Override
@@ -475,5 +606,81 @@ public class paymentFragment extends Fragment implements PaymentAdapter.OnPaymen
 
         setAutoRefresh(false);
         binding = null;
+    }
+
+    // ========== ERROR RECOVERY ==========
+
+    /**
+     * Retry last operation in case of failure
+     */
+    public void retryLastOperation() {
+        if (!isLoading) {
+            Log.d(TAG, "Retrying last operation");
+            loadFirstPage();
+        }
+    }
+
+    /**
+     * Clear error state and reload
+     */
+    public void clearErrorAndReload() {
+        paymentViewModel.clearError();
+        refreshDataComplete();
+    }
+
+    // ========== SEARCH AND FILTER HELPERS ==========
+
+    /**
+     * Filter payments by search query
+     */
+    public void searchPayments(String query) {
+        // For now, just show all payments and let user manually search
+        // In future, can implement server-side search
+        if (query == null || query.trim().isEmpty()) {
+            // Show all payments for current filter
+            loadFirstPage();
+        } else {
+            // Future implementation: server-side search
+            Log.d(TAG, "Search not implemented yet: " + query);
+            Toast.makeText(getContext(), "Tính năng tìm kiếm đang phát triển", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * Get payment statistics for current filter
+     */
+    public void loadPaymentStatistics() {
+        paymentViewModel.loadPaymentStatistics();
+    }
+
+    // ========== DEBUG AND TESTING METHODS ==========
+
+    /**
+     * Test performance
+     */
+    public void testPerformance() {
+        Log.d(TAG, "Testing performance with current filter: " + currentFilter);
+        long startTime = System.currentTimeMillis();
+        loadFirstPage();
+        long endTime = System.currentTimeMillis();
+        Log.d(TAG, "Load time: " + (endTime - startTime) + "ms");
+    }
+
+    /**
+     * Force refresh for debugging
+     */
+    public void forceRefresh() {
+        Log.d(TAG, "Force refresh triggered");
+        refreshDataComplete();
+    }
+
+    /**
+     * Simulate payment status update for testing
+     */
+    public void simulateStatusUpdate(int paymentId, String newStatus) {
+        if (shouldRemoveFromCurrentFilter(newStatus)) {
+            removePaymentFromList(paymentId);
+        }
+        scheduleAutoRefresh();
     }
 }

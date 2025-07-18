@@ -41,6 +41,12 @@ public class Order {
     @SerializedName("completedAt")
     private String completedAt;
 
+    @SerializedName("createdAt")
+    private String createdAt;
+
+    @SerializedName("updatedAt")
+    private String updatedAt;
+
     // ADD THIS FIELD - từ API response
     @SerializedName("totalItems")
     private int totalItems;
@@ -91,6 +97,12 @@ public class Order {
     public String getCompletedAt() { return completedAt; }
     public void setCompletedAt(String completedAt) { this.completedAt = completedAt; }
 
+    public String getCreatedAt() { return createdAt; }
+    public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
+
+    public String getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(String updatedAt) { this.updatedAt = updatedAt; }
+
     // ADD GETTERS/SETTERS for totalItems
     public int getTotalItemsFromAPI() {
         return totalItems;
@@ -100,17 +112,24 @@ public class Order {
         this.totalItems = totalItems;
     }
 
-    public List<OrderItem> getOrderItems() { return orderItems; }
+    public List<OrderItem> getOrderItems() {
+        return orderItems != null ? orderItems : new ArrayList<>();
+    }
+
     public void setOrderItems(List<OrderItem> orderItems) {
         this.orderItems = orderItems != null ? orderItems : new ArrayList<>();
     }
 
-    public List<OrderCombo> getOrderCombos() { return orderCombos; }
+    public List<OrderCombo> getOrderCombos() {
+        return orderCombos != null ? orderCombos : new ArrayList<>();
+    }
+
     public void setOrderCombos(List<OrderCombo> orderCombos) {
         this.orderCombos = orderCombos != null ? orderCombos : new ArrayList<>();
     }
 
-    // Helper methods
+    // ========== STATUS HELPER METHODS ==========
+
     public String getStatusDisplayText() {
         if (orderStatus == null) return "Không xác định";
 
@@ -118,12 +137,15 @@ public class Order {
             case "pending": return "Chờ xác nhận";
             case "confirmed": return "Đã xác nhận";
             case "preparing": return "Đang chuẩn bị";
+            case "ready": return "Sẵn sàng giao";
             case "delivered": return "Đang vận chuyển";
             case "completed": return "Hoàn thành";
             case "cancelled": return "Đã hủy";
             default: return "Không xác định";
         }
     }
+
+    // ========== PAYMENT HELPER METHODS ==========
 
     public String getPaymentMethodText() {
         if (paymentMethod == null) return "Không xác định";
@@ -132,6 +154,8 @@ public class Order {
             case "cash": return "Tiền mặt";
             case "digital_wallet": return "Ví điện tử";
             case "credit_card": return "Thẻ tín dụng";
+            case "debit_card": return "Thẻ ghi nợ";
+            case "bank_transfer": return "Chuyển khoản";
             default: return paymentMethod;
         }
     }
@@ -141,12 +165,17 @@ public class Order {
 
         switch (paymentStatus.toLowerCase()) {
             case "pending": return "Chờ thanh toán";
+            case "processing": return "Đang xử lý";
+            case "complete": return "Đã thanh toán";
             case "paid": return "Đã thanh toán";
             case "failed": return "Thất bại";
             case "refunded": return "Đã hoàn tiền";
+            case "cancelled": return "Đã hủy";
             default: return paymentStatus;
         }
     }
+
+    // ========== FORMATTING METHODS ==========
 
     public String getFormattedAmount() {
         return String.format("%.0f₫", totalAmount);
@@ -177,7 +206,11 @@ public class Order {
         }
     }
 
-    // FIXED getTotalItems method
+    // ========== ITEM COUNT METHODS ==========
+
+    /**
+     * Get total items - tries API field first, then calculates
+     */
     public int getTotalItems() {
         // Ưu tiên totalItems từ API response trước
         if (totalItems > 0) {
@@ -235,6 +268,8 @@ public class Order {
         }
     }
 
+    // ========== VALIDATION METHODS ==========
+
     public boolean hasNotes() {
         return notes != null && !notes.trim().isEmpty() && !notes.equals("null");
     }
@@ -249,5 +284,127 @@ public class Order {
 
     public boolean isCompleted() {
         return completedAt != null && !completedAt.isEmpty() && !completedAt.equals("null");
+    }
+
+    // ========== STATUS CHECK METHODS ==========
+
+    public boolean isPending() {
+        return "pending".equalsIgnoreCase(orderStatus);
+    }
+
+    public boolean isConfirmedStatus() {
+        return "confirmed".equalsIgnoreCase(orderStatus);
+    }
+
+    public boolean isPreparing() {
+        return "preparing".equalsIgnoreCase(orderStatus);
+    }
+
+    public boolean isReady() {
+        return "ready".equalsIgnoreCase(orderStatus);
+    }
+
+    public boolean isDelivered() {
+        return "delivered".equalsIgnoreCase(orderStatus);
+    }
+
+    public boolean isCompletedStatus() {
+        return "completed".equalsIgnoreCase(orderStatus);
+    }
+
+    public boolean isCancelled() {
+        return "cancelled".equalsIgnoreCase(orderStatus);
+    }
+
+    public boolean isFinalStatus() {
+        return isCompletedStatus() || isCancelled();
+    }
+
+    public boolean canBeUpdated() {
+        return !isFinalStatus();
+    }
+
+    public boolean canBeCancelled() {
+        return isPending() || isConfirmedStatus() || isPreparing();
+    }
+
+    // ========== PAYMENT STATUS CHECKS ==========
+
+    public boolean isPaymentPending() {
+        return "pending".equalsIgnoreCase(paymentStatus);
+    }
+
+    public boolean isPaymentComplete() {
+        return "complete".equalsIgnoreCase(paymentStatus) || "paid".equalsIgnoreCase(paymentStatus);
+    }
+
+    public boolean isPaymentFailed() {
+        return "failed".equalsIgnoreCase(paymentStatus);
+    }
+
+    // ========== UTILITY METHODS ==========
+
+    public String getOrderSummary() {
+        return String.format("Đơn hàng #%d - %s - %s",
+                orderId,
+                getStatusDisplayText(),
+                getFormattedAmount());
+    }
+
+    public String getCustomerInfo() {
+        return String.format("Khách hàng: %s (ID: %d)",
+                userName != null ? userName : "N/A",
+                userId);
+    }
+
+    public boolean hasItems() {
+        return (orderItems != null && !orderItems.isEmpty()) ||
+                (orderCombos != null && !orderCombos.isEmpty());
+    }
+
+    public int getUniqueItemsCount() {
+        int count = 0;
+        if (orderItems != null) count += orderItems.size();
+        if (orderCombos != null) count += orderCombos.size();
+        return count;
+    }
+
+    public double calculateSubtotal() {
+        double subtotal = 0.0;
+
+        if (orderItems != null) {
+            for (OrderItem item : orderItems) {
+                subtotal += item.getSubtotal();
+            }
+        }
+
+        if (orderCombos != null) {
+            for (OrderCombo combo : orderCombos) {
+                subtotal += combo.getSubtotal();
+            }
+        }
+
+        return subtotal;
+    }
+
+    // ========== TOSTRING & EQUALS ==========
+
+    @Override
+    public String toString() {
+        return String.format("Order{id=%d, status='%s', customer='%s', amount=%.0f₫}",
+                orderId, orderStatus, userName, totalAmount);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Order order = (Order) obj;
+        return orderId == order.orderId;
+    }
+
+    @Override
+    public int hashCode() {
+        return Integer.hashCode(orderId);
     }
 }

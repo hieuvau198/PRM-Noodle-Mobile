@@ -39,4 +39,102 @@
     <string name="no_orders_found">Không có đơn hàng nào</string>
     <string name="loading">Đang tải...</string>
     <string name="error_loading_orders">Lỗi khi tải danh sách đơn hàng</string>
+    <!-- Payment Management Strings -->
+    <string name="payment_management">Quản lý thanh toán</string>
+
+    <!-- Tab Strings -->
+
+    <string name="tab_processing">Đang xử lý</string>
+    <string name="tab_complete">Hoàn thành</string>
+    <string name="tab_failed">Thất bại</string>
+
+    <!-- Search Strings -->
+    <string name="search_payments">Tìm kiếm thanh toán…</string>
+
+    <!-- Empty State Strings -->
+    <string name="no_payments">Không có thanh toán nào</string>
+    <string name="empty_payments_description">Kéo xuống để làm mới hoặc nhấn nút + để tạo thanh toán</string>
+    <string name="empty_payments_icon">Biểu tượng không có thanh toán</string>
+
+    <!-- Loading Strings -->
+    <string name="loading_more">Đang tải thêm…</string>
+
+    <!-- Action Strings -->
+    <string name="create_new_payment">Tạo thanh toán mới</string>
+
+    <!-- Payment Status Strings -->
+    <string name="status_pending">Chờ thanh toán</string>
+    <string name="status_processing">Đang xử lý</string>
+    <string name="status_complete">Hoàn thành</string>
+    <string name="status_failed">Thất bại</string>
+
+    <!-- Payment Method Strings -->
+    <string name="method_cash">Tiền mặt</string>
+    <string name="method_digital_wallet">Ví điện tử</string>
+    <string name="method_credit_card">Thẻ tín dụng</string>
+    <string name="method_debit_card">Thẻ ghi nợ</string>
+    <string name="method_bank_transfer">Chuyển khoản</string>
+
+    <!-- Common Strings -->
+    <string name="customer">Khách hàng: %1$s</string>
+    <string name="order_id">Đơn: #%1$d</string>
+    <string name="payment_id">Thanh toán #%1$d</string>
+    <string name="amount_format">%1$,.0f₫</string>
+    <string name="no_transaction_ref">Chưa có</string>
+
+    <!-- Button Strings -->
+    <string name="process_payment">XỬ LÝ</string>
+    <string name="fail_payment">THẤT BẠI</string>
+    <string name="complete_payment">HOÀN TẤT</string>
+
+    <!-- Message Strings -->
+    <string name="payment_processing">Đang xử lý thanh toán…</string>
+    <string name="payment_completing">Đang hoàn tất thanh toán…</string>
+    <string name="payment_failing">Đang cập nhật trạng thái thất bại…</string>
+    <string name="payment_created_success">Thanh toán đã được tạo thành công!</string>
+
+    <!-- Dialog Strings -->
+    <string name="confirm_title">Xác nhận</string>
+    <string name="confirm_fail_payment">Bạn có chắc muốn đánh dấu thanh toán này là thất bại?</string>
+    <string name="agree">Đồng ý</string>
+    <string name="cancel">Hủy</string>
+
+    <!-- Tutorial Strings -->
+    <string name="create_payment_tutorial">Nhấn nút + để tạo thanh toán cho đơn hàng</string>
+
+    <!-- Error Strings -->
+    <string name="connection_error">Lỗi kết nối: %1$s</string>
+    <string name="load_payments_error">Không thể tải danh sách thanh toán</string>
+    <string name="update_payment_error">Lỗi khi cập nhật trạng thái thanh toán</string>
+    <!-- Payment Management Strings -->
+
+    <!-- Create Payment Activity Strings -->
+    <string name="create_payment_instruction">Nhập mã đơn hàng và nhấn \'Tải thông tin\' để tự động điền thông tin thanh toán</string>
+    <string name="order_information">Thông tin đơn hàng</string>
+    <string name="customer_information">Thông tin khách hàng</string>
+    <string name="payment_details">Chi tiết thanh toán</string>
+    <string name="staff_notes">Ghi chú nhân viên</string>
+
+    <!-- Form Field Strings -->
+    <string name="order_id_required">Mã đơn hàng *</string>
+    <string name="customer_name_required">Tên khách hàng *</string>
+    <string name="customer_id_required">Mã khách hàng *</string>
+    <string name="payment_amount_required">Số tiền thanh toán *</string>
+    <string name="payment_method_required">Phương thức thanh toán *</string>
+    <string name="transaction_ref_optional">Mã giao dịch (tùy chọn)</string>
+    <string name="notes_optional">Ghi chú (tùy chọn)</string>
+
+    <!-- Helper Text Strings -->
+    <string name="transaction_ref_helper">Để trống để tự động tạo mã</string>
+    <string name="staff_notes_helper">Ghi chú về phương thức thanh toán, tình trạng tiền mặt, v.v.</string>
+
+    <!-- Button Strings -->
+    <string name="load_info">Tải thông tin</string>
+    <string name="create_payment">Thanh toán</string>
+
+    <!-- Icon Description -->
+    <string name="info_icon">Biểu tượng thông tin</string>
+
+    <!-- Error Strings -->
+
 </resources>

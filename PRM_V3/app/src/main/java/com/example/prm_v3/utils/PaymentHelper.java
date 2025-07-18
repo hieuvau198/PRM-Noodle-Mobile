@@ -10,13 +10,14 @@ import java.util.Locale;
 
 /**
  * Helper class for payment management operations
+ * Updated for new payment statuses: pending, processing, complete
  */
 public class PaymentHelper {
 
-    // Payment Status Constants
+    // Payment Status Constants - UPDATED
     public static final String STATUS_PENDING = "pending";
     public static final String STATUS_PROCESSING = "processing";
-    public static final String STATUS_PAID = "paid";
+    public static final String STATUS_COMPLETE = "complete";  // Changed from "paid"
     public static final String STATUS_FAILED = "failed";
     public static final String STATUS_REFUNDED = "refunded";
     public static final String STATUS_CANCELLED = "cancelled";
@@ -34,15 +35,15 @@ public class PaymentHelper {
      * Get next status in payment workflow
      */
     public static String getNextStatus(String currentStatus) {
-        if (currentStatus == null) return null;
+        if (currentStatus == null) return STATUS_PENDING;
 
         switch (currentStatus.toLowerCase()) {
             case STATUS_PENDING:
                 return STATUS_PROCESSING;
             case STATUS_PROCESSING:
-                return STATUS_PAID;
+                return STATUS_COMPLETE;
             default:
-                return null;
+                return currentStatus;
         }
     }
 
@@ -57,8 +58,8 @@ public class PaymentHelper {
                 return "Chờ thanh toán";
             case STATUS_PROCESSING:
                 return "Đang xử lý";
-            case STATUS_PAID:
-                return "Đã thanh toán";
+            case STATUS_COMPLETE:
+                return "Hoàn thành";
             case STATUS_FAILED:
                 return "Thất bại";
             case STATUS_REFUNDED:
@@ -81,7 +82,7 @@ public class PaymentHelper {
                 return R.color.orange_600;
             case STATUS_PROCESSING:
                 return R.color.blue_600;
-            case STATUS_PAID:
+            case STATUS_COMPLETE:
                 return R.color.green_600;
             case STATUS_FAILED:
                 return R.color.red_600;
@@ -105,8 +106,8 @@ public class PaymentHelper {
                 return R.drawable.bg_status_pending;
             case STATUS_PROCESSING:
                 return R.drawable.bg_payment_processing;
-            case STATUS_PAID:
-                return R.drawable.bg_payment_paid;
+            case STATUS_COMPLETE:
+                return R.drawable.bg_payment_complete;
             case STATUS_FAILED:
                 return R.drawable.bg_payment_failed;
             case STATUS_REFUNDED:
@@ -140,6 +141,26 @@ public class PaymentHelper {
             default:
                 return method;
         }
+    }
+
+    public static String getMethodCodeFromPosition(int position) {
+        String[] methods = {METHOD_CASH, METHOD_DIGITAL_WALLET, METHOD_CREDIT_CARD, METHOD_DEBIT_CARD, METHOD_BANK_TRANSFER};
+        if (position >= 0 && position < methods.length) {
+            return methods[position];
+        }
+        return METHOD_CASH; // Default
+    }
+
+    public static int getMethodPositionFromCode(String methodCode) {
+        if (methodCode == null) return 0;
+
+        String[] methods = {METHOD_CASH, METHOD_DIGITAL_WALLET, METHOD_CREDIT_CARD, METHOD_DEBIT_CARD, METHOD_BANK_TRANSFER};
+        for (int i = 0; i < methods.length; i++) {
+            if (methods[i].equalsIgnoreCase(methodCode)) {
+                return i;
+            }
+        }
+        return 0; // Default to cash
     }
 
     /**
@@ -191,7 +212,7 @@ public class PaymentHelper {
      * Check if payment can be refunded
      */
     public static boolean canRefundPayment(String status) {
-        return STATUS_PAID.equalsIgnoreCase(status);
+        return STATUS_COMPLETE.equalsIgnoreCase(status);
     }
 
     /**
@@ -211,7 +232,7 @@ public class PaymentHelper {
         switch (status.toLowerCase()) {
             case STATUS_PENDING:
             case STATUS_PROCESSING:
-            case STATUS_PAID:
+            case STATUS_COMPLETE:
             case STATUS_FAILED:
             case STATUS_REFUNDED:
             case STATUS_CANCELLED:
@@ -245,7 +266,7 @@ public class PaymentHelper {
     public static boolean isFinalStatus(String status) {
         if (status == null) return false;
 
-        return status.toLowerCase().equals(STATUS_PAID) ||
+        return status.toLowerCase().equals(STATUS_COMPLETE) ||
                 status.toLowerCase().equals(STATUS_FAILED) ||
                 status.toLowerCase().equals(STATUS_REFUNDED) ||
                 status.toLowerCase().equals(STATUS_CANCELLED);
@@ -294,6 +315,31 @@ public class PaymentHelper {
     }
 
     /**
+     * Parse amount from formatted string
+     */
+    public static double parseAmount(String formattedAmount) {
+        if (formattedAmount == null || formattedAmount.isEmpty()) {
+            return 0.0;
+        }
+
+        try {
+            // Remove currency symbol and separators
+            String cleanAmount = formattedAmount.replaceAll("[₫,.]", "").trim();
+            return Double.parseDouble(cleanAmount);
+        } catch (NumberFormatException e) {
+            return 0.0;
+        }
+    }
+
+    /**
+     * Format currency input (remove non-numeric characters)
+     */
+    public static String formatCurrencyInput(String input) {
+        if (input == null) return "";
+        return input.replaceAll("[^0-9]", "");
+    }
+
+    /**
      * Format date for display (short format)
      */
     public static String formatDateShort(String dateString) {
@@ -328,7 +374,7 @@ public class PaymentHelper {
         switch (newStatus.toLowerCase()) {
             case STATUS_PROCESSING:
                 return "Thanh toán đang được xử lý";
-            case STATUS_PAID:
+            case STATUS_COMPLETE:
                 return "Thanh toán đã hoàn tất";
             case STATUS_FAILED:
                 return "Thanh toán đã thất bại";
@@ -348,7 +394,7 @@ public class PaymentHelper {
         return new String[]{
                 STATUS_PENDING,
                 STATUS_PROCESSING,
-                STATUS_PAID,
+                STATUS_COMPLETE,
                 STATUS_FAILED,
                 STATUS_REFUNDED,
                 STATUS_CANCELLED
@@ -369,6 +415,19 @@ public class PaymentHelper {
     }
 
     /**
+     * Get all payment method display names
+     */
+    public static String[] getAllMethodDisplayNames() {
+        return new String[]{
+                "Tiền mặt",
+                "Ví điện tử",
+                "Thẻ tín dụng",
+                "Thẻ ghi nợ",
+                "Chuyển khoản"
+        };
+    }
+
+    /**
      * Get status priority for sorting (lower number = higher priority)
      */
     public static int getStatusPriority(String status) {
@@ -379,7 +438,7 @@ public class PaymentHelper {
                 return 1;
             case STATUS_PROCESSING:
                 return 2;
-            case STATUS_PAID:
+            case STATUS_COMPLETE:
                 return 3;
             case STATUS_FAILED:
                 return 4;
@@ -396,7 +455,14 @@ public class PaymentHelper {
      * Generate transaction reference
      */
     public static String generateTransactionReference() {
-        return "TXN" + System.currentTimeMillis();
+        return "PAY" + System.currentTimeMillis();
+    }
+
+    public static String generatePaymentReference(String prefix) {
+        if (prefix == null || prefix.isEmpty()) {
+            prefix = "TXN";
+        }
+        return prefix + "_" + System.currentTimeMillis();
     }
 
     /**
@@ -404,6 +470,43 @@ public class PaymentHelper {
      */
     public static boolean isValidAmount(double amount) {
         return amount > 0 && amount <= 999999999; // Max 999M VND
+    }
+
+    public static boolean canCreatePaymentForOrder(String orderStatus) {
+        if (orderStatus == null) return false;
+
+        switch (orderStatus.toLowerCase()) {
+            case "confirmed":
+            case "preparing":
+            case "ready":
+            case "delivered":
+                return true;
+            case "pending":
+            case "cancelled":
+            default:
+                return false;
+        }
+    }
+
+    public static String getOrderStatusForPayment(String orderStatus) {
+        if (orderStatus == null) return "Không xác định";
+
+        switch (orderStatus.toLowerCase()) {
+            case "confirmed":
+                return "Đã xác nhận - Có thể tạo thanh toán";
+            case "preparing":
+                return "Đang chuẩn bị - Có thể tạo thanh toán";
+            case "ready":
+                return "Sẵn sàng - Có thể tạo thanh toán";
+            case "delivered":
+                return "Đã giao - Có thể tạo thanh toán";
+            case "pending":
+                return "Chờ xác nhận - Chưa thể tạo thanh toán";
+            case "cancelled":
+                return "Đã hủy - Không thể tạo thanh toán";
+            default:
+                return orderStatus;
+        }
     }
 
     /**
@@ -433,13 +536,12 @@ public class PaymentHelper {
      * Get action button text based on current status
      */
     public static String getActionButtonText(String currentStatus) {
-        String nextStatus = getNextStatus(currentStatus);
-        if (nextStatus == null) return "";
+        if (currentStatus == null) return "";
 
-        switch (nextStatus) {
-            case STATUS_PROCESSING:
+        switch (currentStatus.toLowerCase()) {
+            case STATUS_PENDING:
                 return "Xử lý thanh toán";
-            case STATUS_PAID:
+            case STATUS_PROCESSING:
                 return "Hoàn tất thanh toán";
             default:
                 return "Cập nhật";
@@ -491,5 +593,104 @@ public class PaymentHelper {
         }
 
         return false;
+    }
+
+    public static boolean isPaymentInDateRange(Payment payment, String startDate, String endDate) {
+        if (payment == null || payment.getPaymentDate() == null) {
+            return false;
+        }
+
+        try {
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            Date paymentDate = format.parse(payment.getPaymentDate().substring(0, 10));
+
+            if (startDate != null && !startDate.isEmpty()) {
+                Date start = format.parse(startDate);
+                if (paymentDate.before(start)) {
+                    return false;
+                }
+            }
+
+            if (endDate != null && !endDate.isEmpty()) {
+                Date end = format.parse(endDate);
+                if (paymentDate.after(end)) {
+                    return false;
+                }
+            }
+
+            return true;
+        } catch (ParseException e) {
+            return false;
+        }
+    }
+
+    public static boolean isPaymentInAmountRange(Payment payment, double minAmount, double maxAmount) {
+        if (payment == null) {
+            return false;
+        }
+
+        double amount = payment.getPaymentAmount();
+
+        if (minAmount > 0 && amount < minAmount) {
+            return false;
+        }
+
+        if (maxAmount > 0 && amount > maxAmount) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public static double calculateProcessingFee(double amount, String method) {
+        if (amount <= 0) return 0.0;
+
+        switch (method.toLowerCase()) {
+            case METHOD_CASH:
+                return 0.0; // No fee for cash
+            case METHOD_DIGITAL_WALLET:
+                return amount * 0.01; // 1% fee
+            case METHOD_CREDIT_CARD:
+            case METHOD_DEBIT_CARD:
+                return amount * 0.025; // 2.5% fee
+            case METHOD_BANK_TRANSFER:
+                return Math.min(amount * 0.005, 50000); // 0.5% fee, max 50k
+            default:
+                return 0.0;
+        }
+    }
+
+    public static String getEstimatedProcessingTime(String method) {
+        if (method == null) return "Không xác định";
+
+        switch (method.toLowerCase()) {
+            case METHOD_CASH:
+                return "Ngay lập tức";
+            case METHOD_DIGITAL_WALLET:
+                return "1-2 phút";
+            case METHOD_CREDIT_CARD:
+            case METHOD_DEBIT_CARD:
+                return "2-5 phút";
+            case METHOD_BANK_TRANSFER:
+                return "5-15 phút";
+            default:
+                return "Không xác định";
+        }
+    }
+
+    public static boolean requiresVerification(String method) {
+        if (method == null) return false;
+
+        switch (method.toLowerCase()) {
+            case METHOD_CASH:
+                return false;
+            case METHOD_DIGITAL_WALLET:
+            case METHOD_CREDIT_CARD:
+            case METHOD_DEBIT_CARD:
+            case METHOD_BANK_TRANSFER:
+                return true;
+            default:
+                return false;
+        }
     }
 }

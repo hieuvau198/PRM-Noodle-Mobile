@@ -228,8 +228,8 @@ public class PaymentAdapter extends RecyclerView.Adapter<PaymentAdapter.PaymentV
                     return "Chờ thanh toán";
                 case "processing":
                     return "Đang xử lý";
-                case "complete":
-                    return "Thành công";
+                case "complete":  // Updated: paid -> complete
+                    return "Hoàn thành";
                 case "failed":
                     return "Thất bại";
                 default:
@@ -245,7 +245,7 @@ public class PaymentAdapter extends RecyclerView.Adapter<PaymentAdapter.PaymentV
                     return R.color.orange_600;
                 case "processing":
                     return R.color.blue_600;
-                case "complete":
+                case "complete":  // Updated: paid -> complete
                     return R.color.green_600;
                 case "failed":
                     return R.color.red_600;
@@ -262,8 +262,8 @@ public class PaymentAdapter extends RecyclerView.Adapter<PaymentAdapter.PaymentV
                     return R.drawable.bg_status_pending;
                 case "processing":
                     return R.drawable.bg_payment_processing;
-                case "complete":
-                    return R.drawable.bg_payment_paid;
+                case "complete":  // Updated: paid -> complete
+                    return R.drawable.bg_payment_complete;
                 case "failed":
                     return R.drawable.bg_payment_failed;
                 default:

@@ -27,6 +27,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".ui.auth.LoginActivity"
             android:exported="true"
@@ -43,11 +44,30 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
         </activity>
+
+        <!-- PaymentDetailActivity for viewing payment details -->
         <activity
             android:name=".ui.payment.PaymentDetailActivity"
             android:exported="false"
+            android:label="Chi tiết thanh toán"
             android:parentActivityName=".MainActivity"
-            android:theme="@style/Theme.PRM_V3" />
+            android:theme="@style/Theme.PRM_V3.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
+        </activity>
+
+        <!-- CreatePaymentActivity for creating new payments - ADDED THIS -->
+        <activity
+            android:name=".ui.payment.CreatePaymentActivity"
+            android:exported="false"
+            android:label="Tạo thanh toán"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/Theme.PRM_V3.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
+        </activity>
 
     </application>
 

@@ -200,7 +200,7 @@ public class PaymentDetailActivity extends AppCompatActivity {
             Call<Payment> call = apiService.processPayment(paymentId);
             call.enqueue(processCallback);
         } else if ("processing".equalsIgnoreCase(currentStatus)) {
-            // Move to paid (complete)
+            // Move to complete (updated from paid)
             Call<Payment> call = apiService.completePayment(paymentId);
             call.enqueue(processCallback);
         }
@@ -219,7 +219,7 @@ public class PaymentDetailActivity extends AppCompatActivity {
                 String message = "";
                 if ("processing".equalsIgnoreCase(status)) {
                     message = "Thanh toán đang được xử lý";
-                } else if ("complete".equalsIgnoreCase(status)) {
+                } else if ("complete".equalsIgnoreCase(status)) {  // Updated: paid -> complete
                     message = "Thanh toán đã hoàn tất";
                 }
 
@@ -294,8 +294,8 @@ public class PaymentDetailActivity extends AppCompatActivity {
                 return "Chờ thanh toán";
             case "processing":
                 return "Đang xử lý";
-            case "complete":
-                return "Thành công";
+            case "complete":  // Updated: paid -> complete
+                return "Hoàn thành";
             case "failed":
                 return "Thất bại";
             default:
@@ -311,7 +311,7 @@ public class PaymentDetailActivity extends AppCompatActivity {
                 return getColor(R.color.orange_600);
             case "processing":
                 return getColor(R.color.blue_600);
-            case "complete":
+            case "complete":  // Updated: paid -> complete
                 return getColor(R.color.green_600);
             case "failed":
                 return getColor(R.color.red_600);

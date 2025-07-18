@@ -8,9 +8,11 @@ import android.content.Intent;
 import android.os.Build;
 
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 
 import com.example.prm_v3.R;
 import com.example.prm_v3.ui.orders.OrderDetailActivity;
+import com.example.prm_v3.ui.payment.PaymentDetailActivity;
 
 public class NotificationHelper {
     private static final String CHANNEL_ID = "ORDER_UPDATES";
@@ -98,5 +100,30 @@ public class NotificationHelper {
             case "cancelled": return "Đã hủy";
             default: return "Không xác định";
         }
+    }
+    public void showPaymentCreatedNotification(int paymentId, int orderId, String customerName, double amount) {
+        String title = "Tạo thanh toán thành công";
+        String message = String.format("Thanh toán #%d cho đơn hàng #%d\n%s - %,.0f₫",
+                paymentId, orderId, customerName, amount);
+
+        Intent intent = PaymentDetailActivity.newIntent(context, paymentId);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                context,
+                paymentId,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_payment)
+                .setContentTitle(title)
+                .setContentText(message)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+                .setColor(ContextCompat.getColor(context, R.color.green_600))
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(message));
+
+        notificationManager.notify(paymentId + 20000, builder.build());
     }
 }

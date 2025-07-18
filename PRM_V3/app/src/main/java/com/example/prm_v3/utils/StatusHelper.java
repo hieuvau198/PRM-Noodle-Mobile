@@ -3,43 +3,23 @@ package com.example.prm_v3.utils;
 import com.example.prm_v3.R;
 
 /**
- * Helper class for order status management - FIXED VERSION
+ * Helper class for order status management
  */
 public class StatusHelper {
 
-    // Status constants - UPDATED để match với backend
+    // Order Status Constants
     public static final String STATUS_PENDING = "pending";
     public static final String STATUS_CONFIRMED = "confirmed";
     public static final String STATUS_PREPARING = "preparing";
-    public static final String STATUS_READY = "ready";        // NEW: Backend trả về "ready"
-    public static final String STATUS_DELIVERED = "delivered"; // Có thể là final status
+    public static final String STATUS_READY = "ready";
+    public static final String STATUS_DELIVERED = "delivered";
     public static final String STATUS_COMPLETED = "completed";
     public static final String STATUS_CANCELLED = "cancelled";
-    public static final String STATUS_ALL = "all";
+
+    // ========== STATUS DISPLAY METHODS ==========
 
     /**
-     * Get the next status in the order workflow - FIXED với backend workflow
-     */
-    public static String getNextStatus(String currentStatus) {
-        if (currentStatus == null) return null;
-
-        switch (currentStatus.toLowerCase()) {
-            case STATUS_PENDING:
-                return STATUS_CONFIRMED;
-            case STATUS_CONFIRMED:
-                return STATUS_PREPARING;
-            case STATUS_PREPARING:
-                return STATUS_READY;           // preparing -> ready (via /deliver API)
-            case STATUS_READY:
-                return STATUS_DELIVERED;      // ready -> delivered (via /complete API)
-            // NOTE: delivered là final status trong backend này
-            default:
-                return null;
-        }
-    }
-
-    /**
-     * Get status display text in Vietnamese - FIXED Backend mapping
+     * Get status display text in Vietnamese
      */
     public static String getStatusDisplayText(String status) {
         if (status == null) return "Không xác định";
@@ -52,20 +32,20 @@ public class StatusHelper {
             case STATUS_PREPARING:
                 return "Đang chuẩn bị";
             case STATUS_READY:
-                return "Sẵn sàng giao";           // Backend: ready
+                return "Sẵn sàng giao";
             case STATUS_DELIVERED:
-                return "Hoàn thành";              // Backend: delivered = final status
-            case STATUS_COMPLETED:                // Legacy support
+                return "Đang vận chuyển";
+            case STATUS_COMPLETED:
                 return "Hoàn thành";
             case STATUS_CANCELLED:
                 return "Đã hủy";
             default:
-                return "Không xác định";
+                return status;
         }
     }
 
     /**
-     * Get status color resource - UPDATED
+     * Get status color resource
      */
     public static int getStatusColor(String status) {
         if (status == null) return R.color.gray_600;
@@ -77,10 +57,10 @@ public class StatusHelper {
                 return R.color.blue_600;
             case STATUS_PREPARING:
                 return R.color.yellow_600;
-            case STATUS_READY:                    // NEW
+            case STATUS_READY:
                 return R.color.purple_600;
             case STATUS_DELIVERED:
-                return R.color.green_400;         // Slightly different from completed
+                return R.color.purple_600;
             case STATUS_COMPLETED:
                 return R.color.green_600;
             case STATUS_CANCELLED:
@@ -91,7 +71,7 @@ public class StatusHelper {
     }
 
     /**
-     * Get status background drawable resource - UPDATED
+     * Get status background drawable resource
      */
     public static int getStatusBackground(String status) {
         if (status == null) return R.drawable.bg_status_badge;
@@ -103,7 +83,7 @@ public class StatusHelper {
                 return R.drawable.bg_status_confirmed;
             case STATUS_PREPARING:
                 return R.drawable.bg_status_preparing;
-            case STATUS_READY:                    // NEW
+            case STATUS_READY:
                 return R.drawable.bg_status_ready;
             case STATUS_DELIVERED:
                 return R.drawable.bg_status_delivered;
@@ -116,15 +96,31 @@ public class StatusHelper {
         }
     }
 
+    // ========== STATUS VALIDATION METHODS ==========
+
     /**
-     * Check if status can be updated to next status - UPDATED
+     * Check if order can be updated to next status
      */
     public static boolean canUpdateToNextStatus(String currentStatus) {
-        return getNextStatus(currentStatus) != null;
+        if (currentStatus == null) return false;
+
+        switch (currentStatus.toLowerCase()) {
+            case STATUS_PENDING:
+            case STATUS_CONFIRMED:
+            case STATUS_PREPARING:
+            case STATUS_READY:
+                return true;
+            case STATUS_DELIVERED:
+            case STATUS_COMPLETED:
+            case STATUS_CANCELLED:
+                return false;
+            default:
+                return false;
+        }
     }
 
     /**
-     * Check if order can be cancelled - UPDATED
+     * Check if order can be cancelled
      */
     public static boolean canCancelOrder(String currentStatus) {
         if (currentStatus == null) return false;
@@ -133,9 +129,9 @@ public class StatusHelper {
             case STATUS_PENDING:
             case STATUS_CONFIRMED:
             case STATUS_PREPARING:
-            case STATUS_READY:                // NEW: Có thể hủy khi ready
+            case STATUS_READY:
                 return true;
-            case STATUS_DELIVERED:            // Có thể không hủy được khi đang giao
+            case STATUS_DELIVERED:
             case STATUS_COMPLETED:
             case STATUS_CANCELLED:
                 return false;
@@ -145,28 +141,22 @@ public class StatusHelper {
     }
 
     /**
-     * Get action button text for next status - FIXED Backend mapping
+     * Check if status is final (cannot be changed)
      */
-    public static String getActionButtonText(String currentStatus) {
-        String nextStatus = getNextStatus(currentStatus);
-        if (nextStatus == null) return "";
+    public static boolean isFinalStatus(String status) {
+        if (status == null) return false;
 
-        switch (nextStatus) {
-            case STATUS_CONFIRMED:
-                return "Xác nhận đơn hàng";
-            case STATUS_PREPARING:
-                return "Bắt đầu chuẩn bị";
-            case STATUS_READY:
-                return "Sẵn sàng giao";          // preparing -> ready (via /deliver)
-            case STATUS_DELIVERED:
-                return "Hoàn thành";             // ready -> delivered (via /complete)
+        switch (status.toLowerCase()) {
+            case STATUS_COMPLETED:
+            case STATUS_CANCELLED:
+                return true;
             default:
-                return "Cập nhật";
+                return false;
         }
     }
 
     /**
-     * Check if status is valid - UPDATED
+     * Check if status is valid
      */
     public static boolean isValidStatus(String status) {
         if (status == null) return false;
@@ -175,7 +165,7 @@ public class StatusHelper {
             case STATUS_PENDING:
             case STATUS_CONFIRMED:
             case STATUS_PREPARING:
-            case STATUS_READY:                // NEW
+            case STATUS_READY:
             case STATUS_DELIVERED:
             case STATUS_COMPLETED:
             case STATUS_CANCELLED:
@@ -185,87 +175,54 @@ public class StatusHelper {
         }
     }
 
-    /**
-     * Get all available statuses - UPDATED
-     */
-    public static String[] getAllStatuses() {
-        return new String[]{
-                STATUS_ALL,
-                STATUS_PENDING,
-                STATUS_CONFIRMED,
-                STATUS_PREPARING,
-                STATUS_READY,           // NEW
-                STATUS_DELIVERED,
-                STATUS_COMPLETED,
-                STATUS_CANCELLED
-        };
-    }
+    // ========== STATUS WORKFLOW METHODS ==========
 
     /**
-     * Get tab display names - UPDATED
+     * Get next status in workflow
      */
-    public static String getTabDisplayName(String status) {
-        if (status == null) return "Tất cả";
+    public static String getNextStatus(String currentStatus) {
+        if (currentStatus == null) return null;
 
-        switch (status.toLowerCase()) {
-            case STATUS_ALL:
-                return "Tất cả";
+        switch (currentStatus.toLowerCase()) {
             case STATUS_PENDING:
-                return "Chờ xác nhận";
+                return STATUS_CONFIRMED;
             case STATUS_CONFIRMED:
-                return "Đã xác nhận";
+                return STATUS_PREPARING;
             case STATUS_PREPARING:
-                return "Đang chuẩn bị";
-            case STATUS_READY:               // NEW
-                return "Sẵn sàng";
+                return STATUS_READY;
+            case STATUS_READY:
+                return STATUS_DELIVERED;
             case STATUS_DELIVERED:
-                return "Đang vận chuyển";
-            case STATUS_COMPLETED:
+                return STATUS_COMPLETED;
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * Get action button text for current status
+     */
+    public static String getActionButtonText(String currentStatus) {
+        if (currentStatus == null) return "Cập nhật";
+
+        switch (currentStatus.toLowerCase()) {
+            case STATUS_PENDING:
+                return "Xác nhận đơn hàng";
+            case STATUS_CONFIRMED:
+                return "Bắt đầu chuẩn bị";
+            case STATUS_PREPARING:
+                return "Sẵn sàng giao";
+            case STATUS_READY:
                 return "Hoàn thành";
-            case STATUS_CANCELLED:
-                return "Đã hủy";
-            default:
-                return "Tất cả";
-        }
-    }
-
-    /**
-     * Get notification message for status update - UPDATED
-     */
-    public static String getStatusUpdateMessage(String newStatus) {
-        if (newStatus == null) return "Cập nhật trạng thái thành công";
-
-        switch (newStatus.toLowerCase()) {
-            case STATUS_CONFIRMED:
-                return "Đã xác nhận đơn hàng";
-            case STATUS_PREPARING:
-                return "Đã bắt đầu chuẩn bị đơn hàng";
-            case STATUS_READY:                    // NEW
-                return "Đơn hàng đã sẵn sàng giao";
             case STATUS_DELIVERED:
-                return "Đơn hàng đã được giao";
-            case STATUS_COMPLETED:
-                return "Đơn hàng đã hoàn thành";
-            case STATUS_CANCELLED:
-                return "Đơn hàng đã được hủy";
+                return "Hoàn thành";
             default:
-                return "Cập nhật trạng thái thành công";
+                return "Cập nhật";
         }
     }
 
     /**
-     * Check if status is final (cannot be changed) - FIXED Backend
-     */
-    public static boolean isFinalStatus(String status) {
-        if (status == null) return false;
-
-        // Backend: "delivered" là final status, không có "completed"
-        return status.toLowerCase().equals(STATUS_DELIVERED) ||
-                status.toLowerCase().equals(STATUS_CANCELLED);
-    }
-
-    /**
-     * Get status priority for sorting (lower number = higher priority) - UPDATED
+     * Get status priority for sorting (lower number = higher priority)
      */
     public static int getStatusPriority(String status) {
         if (status == null) return 999;
@@ -277,7 +234,7 @@ public class StatusHelper {
                 return 2;
             case STATUS_PREPARING:
                 return 3;
-            case STATUS_READY:               // NEW
+            case STATUS_READY:
                 return 4;
             case STATUS_DELIVERED:
                 return 5;
@@ -290,19 +247,163 @@ public class StatusHelper {
         }
     }
 
-    /**
-     * MAPPING HELPER: Convert backend status to frontend expected status
-     */
-    public static String normalizeStatus(String backendStatus) {
-        if (backendStatus == null) return null;
+    // ========== UTILITY METHODS ==========
 
-        // Nếu backend trả về "ready" nhưng frontend expect "delivered"
-        // thì có thể cần mapping
-        switch (backendStatus.toLowerCase()) {
-            case "ready":
-                return STATUS_READY;  // Giữ nguyên, đã update StatusHelper
+    /**
+     * Get status update message for notifications
+     */
+    public static String getStatusUpdateMessage(String newStatus) {
+        if (newStatus == null) return "Cập nhật trạng thái thành công";
+
+        switch (newStatus.toLowerCase()) {
+            case STATUS_CONFIRMED:
+                return "Đơn hàng đã được xác nhận";
+            case STATUS_PREPARING:
+                return "Đã bắt đầu chuẩn bị đơn hàng";
+            case STATUS_READY:
+                return "Đơn hàng sẵn sàng giao";
+            case STATUS_DELIVERED:
+                return "Đơn hàng đang được vận chuyển";
+            case STATUS_COMPLETED:
+                return "Đơn hàng đã hoàn thành";
+            case STATUS_CANCELLED:
+                return "Đơn hàng đã bị hủy";
             default:
-                return backendStatus.toLowerCase();
+                return "Cập nhật trạng thái thành công";
         }
+    }
+
+    /**
+     * Get all available order statuses
+     */
+    public static String[] getAllStatuses() {
+        return new String[]{
+                STATUS_PENDING,
+                STATUS_CONFIRMED,
+                STATUS_PREPARING,
+                STATUS_READY,
+                STATUS_DELIVERED,
+                STATUS_COMPLETED,
+                STATUS_CANCELLED
+        };
+    }
+
+    /**
+     * Get all status display names
+     */
+    public static String[] getAllStatusDisplayNames() {
+        return new String[]{
+                "Chờ xác nhận",
+                "Đã xác nhận",
+                "Đang chuẩn bị",
+                "Sẵn sàng giao",
+                "Đang vận chuyển",
+                "Hoàn thành",
+                "Đã hủy"
+        };
+    }
+
+    /**
+     * Check if status allows payment creation
+     */
+    public static boolean canCreatePaymentForStatus(String orderStatus) {
+        if (orderStatus == null) return false;
+
+        switch (orderStatus.toLowerCase()) {
+            case STATUS_CONFIRMED:
+            case STATUS_PREPARING:
+            case STATUS_READY:
+            case STATUS_DELIVERED:
+                return true;
+            case STATUS_PENDING:
+            case STATUS_CANCELLED:
+            case STATUS_COMPLETED:
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Get order status description for payment creation
+     */
+    public static String getOrderStatusForPayment(String orderStatus) {
+        if (orderStatus == null) return "Không xác định";
+
+        switch (orderStatus.toLowerCase()) {
+            case STATUS_CONFIRMED:
+                return "Đã xác nhận - Có thể tạo thanh toán";
+            case STATUS_PREPARING:
+                return "Đang chuẩn bị - Có thể tạo thanh toán";
+            case STATUS_READY:
+                return "Sẵn sàng - Có thể tạo thanh toán";
+            case STATUS_DELIVERED:
+                return "Đã giao - Có thể tạo thanh toán";
+            case STATUS_PENDING:
+                return "Chờ xác nhận - Chưa thể tạo thanh toán";
+            case STATUS_CANCELLED:
+                return "Đã hủy - Không thể tạo thanh toán";
+            case STATUS_COMPLETED:
+                return "Đã hoàn thành - Không cần thanh toán";
+            default:
+                return orderStatus;
+        }
+    }
+
+    // ========== SEARCH AND FILTER HELPERS ==========
+
+    /**
+     * Filter statuses by category
+     */
+    public static String[] getActiveStatuses() {
+        return new String[]{
+                STATUS_PENDING,
+                STATUS_CONFIRMED,
+                STATUS_PREPARING,
+                STATUS_READY,
+                STATUS_DELIVERED
+        };
+    }
+
+    public static String[] getFinalStatuses() {
+        return new String[]{
+                STATUS_COMPLETED,
+                STATUS_CANCELLED
+        };
+    }
+
+    public static String[] getProcessingStatuses() {
+        return new String[]{
+                STATUS_CONFIRMED,
+                STATUS_PREPARING,
+                STATUS_READY
+        };
+    }
+
+    /**
+     * Check if status is in active processing
+     */
+    public static boolean isActiveStatus(String status) {
+        if (status == null) return false;
+
+        for (String activeStatus : getActiveStatuses()) {
+            if (activeStatus.equalsIgnoreCase(status)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Check if status is in processing (kitchen work)
+     */
+    public static boolean isProcessingStatus(String status) {
+        if (status == null) return false;
+
+        for (String processingStatus : getProcessingStatuses()) {
+            if (processingStatus.equalsIgnoreCase(status)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

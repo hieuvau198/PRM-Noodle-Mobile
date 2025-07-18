@@ -22,11 +22,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Quản lý thanh toán"
+            android:text="@string/payment_management"
             android:textColor="@android:color/white"
             android:textSize="20sp"
             android:textStyle="bold" />
-
 
     </LinearLayout>
 
@@ -53,7 +52,7 @@
                 android:background="@drawable/bg_tab_selected"
                 android:paddingHorizontal="16dp"
                 android:paddingVertical="8dp"
-                android:text="Tất cả"
+                android:text="@string/tab_all"
                 android:textColor="@color/orange_600"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -66,8 +65,8 @@
                 android:background="@drawable/bg_tab_normal"
                 android:paddingHorizontal="16dp"
                 android:paddingVertical="8dp"
-                android:text="Chờ thanh toán"
-                android:textColor="@color/gray_600"
+                android:text="@string/tab_pending"
+                android:textColor="@color/green_400"
                 android:textSize="14sp" />
 
             <TextView
@@ -78,19 +77,20 @@
                 android:background="@drawable/bg_tab_normal"
                 android:paddingHorizontal="16dp"
                 android:paddingVertical="8dp"
-                android:text="Đang xử lý"
-                android:textColor="@color/gray_600"
+                android:text="@string/tab_processing"
+                android:textColor="@color/green_600"
                 android:textSize="14sp" />
 
+            <!-- UPDATED: Changed from tab_paid to tab_complete -->
             <TextView
-                android:id="@+id/tab_paid"
+                android:id="@+id/tab_complete"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="8dp"
                 android:background="@drawable/bg_tab_normal"
                 android:paddingHorizontal="16dp"
                 android:paddingVertical="8dp"
-                android:text="Đã thanh toán"
+                android:text="@string/tab_complete"
                 android:textColor="@color/gray_600"
                 android:textSize="14sp" />
 
@@ -102,7 +102,7 @@
                 android:background="@drawable/bg_tab_normal"
                 android:paddingHorizontal="16dp"
                 android:paddingVertical="8dp"
-                android:text="Thất bại"
+                android:text="@string/tab_failed"
                 android:textColor="@color/gray_600"
                 android:textSize="14sp" />
         </LinearLayout>
@@ -128,13 +128,13 @@
             android:id="@+id/et_search"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Tìm kiếm thanh toán..."
+            android:hint="@string/search_payments"
             android:inputType="text"
             android:maxLines="1" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- SwipeRefreshLayout wrapping RecyclerView -->
+    <!-- SwipeRefreshLayout wrapping RecyclerView - FIXED -->
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipe_refresh_layout"
         android:layout_width="match_parent"
@@ -148,7 +148,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
-            android:paddingBottom="56dp"
+            android:paddingBottom="80dp"
             tools:listitem="@layout/item_payment" />
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
@@ -177,21 +177,32 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
+        <ImageView
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:src="@drawable/ic_payment"
+            android:alpha="0.5"
+            android:contentDescription="@string/empty_payments_icon" />
+
         <TextView
+            android:id="@+id/tv_empty_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Không có thanh toán nào"
+            android:text="@string/no_payments"
             android:textColor="@color/gray_600"
-            android:textSize="16sp" />
+            android:textSize="16sp"
+            android:gravity="center"
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Kéo xuống để làm mới"
+            android:text="@string/empty_payments_description"
             android:textColor="@color/gray_600"
-            android:textSize="14sp" />
+            android:textSize="14sp"
+            android:gravity="center" />
 
     </LinearLayout>
 
@@ -214,22 +225,20 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Đang tải thêm..."
-            android:textColor="@color/gray_600"
+            android:text="@string/loading_more"
+            android:textColor="@color/green_100"
             android:textSize="14sp" />
 
     </LinearLayout>
 
-    <!-- Floating Action Button for Add Payment -->
+    <!-- Floating Action Button for Add Payment - UPDATED: Always visible -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_add_payment"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
-        android:contentDescription="Thêm thanh toán mới"
+        android:contentDescription="@string/create_new_payment"
         android:src="@drawable/ic_add"
-        android:visibility="gone"
         app:backgroundTint="@color/orange_600"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
