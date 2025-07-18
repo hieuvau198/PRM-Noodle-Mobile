@@ -75,4 +75,41 @@ public class Payment {
     public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
     public String getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(String updatedAt) { this.updatedAt = updatedAt; }
+    @Override
+    public String toString() {
+        return String.format(
+                "Payment{orderId=%d, customerUserId=%d, customerName='%s', " +
+                        "paymentAmount=%.2f, paymentMethod='%s', paymentStatus='%s', " +
+                        "transactionReference='%s'}",
+                orderId, customerUserId, customerName, paymentAmount,
+                paymentMethod, paymentStatus, transactionReference
+        );
+    }
+
+    // Add validation method
+    public boolean isValid() {
+        return orderId > 0 &&
+                customerUserId > 0 &&
+                customerName != null && !customerName.trim().isEmpty() &&
+                paymentAmount > 0 &&
+                paymentMethod != null && !paymentMethod.trim().isEmpty() &&
+                paymentStatus != null && !paymentStatus.trim().isEmpty();
+    }
+
+    // Add method to get validation errors
+    public String getValidationErrors() {
+        StringBuilder errors = new StringBuilder();
+
+        if (orderId <= 0) errors.append("OrderId must be > 0; ");
+        if (customerUserId <= 0) errors.append("CustomerUserId must be > 0; ");
+        if (customerName == null || customerName.trim().isEmpty())
+            errors.append("CustomerName is required; ");
+        if (paymentAmount <= 0) errors.append("PaymentAmount must be > 0; ");
+        if (paymentMethod == null || paymentMethod.trim().isEmpty())
+            errors.append("PaymentMethod is required; ");
+        if (paymentStatus == null || paymentStatus.trim().isEmpty())
+            errors.append("PaymentStatus is required; ");
+
+        return errors.toString();
+    }
 } 
