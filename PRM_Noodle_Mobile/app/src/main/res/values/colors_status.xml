@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Order Status Colors -->
     <color name="status_pending">#FF9800</color>
     <color name="status_confirmed">#2196F3</color>
     <color name="status_delivered">#4CAF50</color>
     <color name="status_cancelled">#F44336</color>
+
+    <!-- Payment Status Colors -->
+    <color name="payment_paid">#4CAF50</color>
+    <color name="payment_pending">#FF9800</color>
+    <color name="payment_failed">#F44336</color>
+    <color name="payment_refunded">#2196F3</color>
 </resources>
