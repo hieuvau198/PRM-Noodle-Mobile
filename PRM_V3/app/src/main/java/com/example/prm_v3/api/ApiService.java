@@ -8,6 +8,7 @@ import com.example.prm_v3.model.Combo;
 import com.example.prm_v3.model.Topping;
 import com.example.prm_v3.model.Login;
 import com.example.prm_v3.api.AuthResponse;
+import com.example.prm_v3.api.CreatePaymentRequest;
 import com.example.prm_v3.model.User;
 import com.example.prm_v3.model.Payment;
 
@@ -182,6 +183,10 @@ public interface ApiService {
     // Create new payment
     @POST("api/Payments")
     Call<Payment> createPayment(@Body Payment payment);
+
+    // Create payment from order
+    @POST("api/Payments")
+    Call<Payment> createPaymentFromOrder(@Body CreatePaymentRequest request);
 
     // Process payment (pending -> processing)
     @PATCH("api/Payments/{id}/process")

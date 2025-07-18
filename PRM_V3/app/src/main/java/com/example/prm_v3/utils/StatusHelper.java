@@ -124,21 +124,42 @@ public class StatusHelper {
     }
 
     /**
-     * Check if order can be cancelled - UPDATED
+     * Check if order can be cancelled - UPDATED: Chỉ cho phép hủy khi đơn hàng ở trạng thái "chờ xác nhận"
      */
     public static boolean canCancelOrder(String currentStatus) {
         if (currentStatus == null) return false;
 
         switch (currentStatus.toLowerCase()) {
-            case STATUS_PENDING:
+            case STATUS_PENDING:              // CHỈ cho phép hủy khi đang chờ xác nhận
+                return true;
             case STATUS_CONFIRMED:
             case STATUS_PREPARING:
-            case STATUS_READY:                // NEW: Có thể hủy khi ready
-                return true;
-            case STATUS_DELIVERED:            // Có thể không hủy được khi đang giao
+            case STATUS_READY:
+            case STATUS_DELIVERED:
             case STATUS_COMPLETED:
             case STATUS_CANCELLED:
                 return false;
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Check if order can create invoice - Hiển thị nút tạo hóa đơn khi không thể hủy
+     */
+    public static boolean canCreateInvoice(String currentStatus) {
+        if (currentStatus == null) return false;
+
+        switch (currentStatus.toLowerCase()) {
+            case STATUS_CONFIRMED:
+            case STATUS_PREPARING:
+            case STATUS_READY:
+            case STATUS_DELIVERED:
+                return true;  // Hiển thị nút tạo hóa đơn cho các trạng thái này
+            case STATUS_PENDING:
+            case STATUS_COMPLETED:
+            case STATUS_CANCELLED:
+                return false; // Không hiển thị nút tạo hóa đơn
             default:
                 return false;
         }

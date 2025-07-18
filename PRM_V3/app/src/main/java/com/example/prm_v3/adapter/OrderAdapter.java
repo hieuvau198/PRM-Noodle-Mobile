@@ -29,7 +29,9 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
     public interface OnOrderActionListener {
         void onConfirmOrder(Order order);
         void onCancelOrder(Order order);
+        void onCreateInvoice(Order order);  // Thêm method tạo hóa đơn
         void onOrderClick(Order order);
+        boolean hasPayment(Order order);    // Thêm method kiểm tra payment
     }
 
     public OrderAdapter(Context context, List<Order> orders) {
@@ -188,6 +190,13 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             // Check if order can be updated or cancelled using StatusHelper
             boolean canUpdate = StatusHelper.canUpdateToNextStatus(status);
             boolean canCancel = StatusHelper.canCancelOrder(status);
+            boolean canCreateInvoice = StatusHelper.canCreateInvoice(status);
+            
+            // Kiểm tra xem order đã có payment chưa (nếu listener hỗ trợ)
+            boolean hasPayment = false;
+            if (listener != null) {
+                hasPayment = listener.hasPayment(order);
+            }
 
             if (canUpdate) {
                 btnConfirmOrder.setVisibility(View.VISIBLE);
@@ -200,6 +209,12 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             if (canCancel) {
                 btnCancelOrder.setVisibility(View.VISIBLE);
                 btnCancelOrder.setText("Hủy đơn");
+                setupButtonClickListeners(order);
+            } else if (canCreateInvoice && !hasPayment) {
+                // CHỈ hiển thị nút tạo hóa đơn khi chưa có payment
+                btnCancelOrder.setVisibility(View.VISIBLE);
+                btnCancelOrder.setText("Tạo hóa đơn");
+                btnCancelOrder.setBackgroundResource(R.drawable.bg_status_confirmed); // Đổi màu xanh
                 setupButtonClickListeners(order);
             } else {
                 btnCancelOrder.setVisibility(View.GONE);
@@ -221,7 +236,12 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
 
             btnCancelOrder.setOnClickListener(v -> {
                 if (listener != null) {
-                    listener.onCancelOrder(order);
+                    String buttonText = btnCancelOrder.getText().toString();
+                    if ("Hủy đơn".equals(buttonText)) {
+                        listener.onCancelOrder(order);
+                    } else if ("Tạo hóa đơn".equals(buttonText)) {
+                        listener.onCreateInvoice(order);
+                    }
                 }
             });
         }

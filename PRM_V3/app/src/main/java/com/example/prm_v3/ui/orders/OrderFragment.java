@@ -23,12 +23,20 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.prm_v3.R;
 import com.example.prm_v3.adapter.OrderAdapter;
+import com.example.prm_v3.api.ApiClient;
+import com.example.prm_v3.api.ApiService;
+import com.example.prm_v3.api.CreatePaymentRequest;
 import com.example.prm_v3.databinding.FragmentOrderBinding;
 import com.example.prm_v3.model.Order;
+import com.example.prm_v3.model.Payment;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class OrderFragment extends Fragment implements OrderAdapter.OnOrderActionListener {
     private static final String TAG = "OrderFragment";
@@ -36,7 +44,9 @@ public class OrderFragment extends Fragment implements OrderAdapter.OnOrderActio
     private FragmentOrderBinding binding;
     private OrderViewModel orderViewModel;
     private OrderAdapter orderAdapter;
+    private ApiService apiService;  // Thêm ApiService để kiểm tra payment
     private List<Order> allOrders = new ArrayList<>();
+    private List<Payment> cachedPayments = new ArrayList<>(); // Cache payments để kiểm tra nhanh
     private String currentFilter = "all";
 
     // Pagination variables
@@ -63,10 +73,16 @@ public class OrderFragment extends Fragment implements OrderAdapter.OnOrderActio
         binding = FragmentOrderBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
+        // Khởi tạo ApiService
+        apiService = ApiClient.getApiService();
+
         initViews();
         setupRecyclerView();
         setupTabListeners();
         observeViewModel();
+
+        // Load payments để cache cho việc kiểm tra hasPayment
+        loadAndCachePayments();
 
         // Load initial data
         loadFirstPageOptimized();
@@ -347,6 +363,129 @@ public class OrderFragment extends Fragment implements OrderAdapter.OnOrderActio
     }
 
     @Override
+    public void onCreateInvoice(Order order) {
+        // Kiểm tra xem order đã có payment chưa
+        checkOrderPaymentAndCreateInvoice(order);
+    }
+
+    @Override
+    public boolean hasPayment(Order order) {
+        // Kiểm tra trong danh sách payments đã cache để xác định xem order đã có payment chưa
+        for (Payment payment : cachedPayments) {
+            if (payment.getOrderId() == order.getOrderId()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void checkOrderPaymentAndCreateInvoice(Order order) {
+        Log.d(TAG, "Checking payment for order: " + order.getOrderId());
+        
+        // Gọi API để lấy tất cả payments và tìm payment của order này
+        Call<List<Payment>> call = apiService.getPayments();
+        call.enqueue(new Callback<List<Payment>>() {
+            @Override
+            public void onResponse(Call<List<Payment>> call, Response<List<Payment>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<Payment> payments = response.body();
+                    
+                    // Tìm payment của order này
+                    boolean hasPayment = false;
+                    for (Payment payment : payments) {
+                        if (payment.getOrderId() == order.getOrderId()) {
+                            hasPayment = true;
+                            break;
+                        }
+                    }
+                    
+                    if (hasPayment) {
+                        Toast.makeText(getContext(), 
+                            "Đơn hàng #" + order.getOrderId() + " đã có hóa đơn thanh toán", 
+                            Toast.LENGTH_LONG).show();
+                    } else {
+                        // Chưa có payment, có thể tạo hóa đơn
+                        showCreateInvoiceDialog(order);
+                    }
+                } else {
+                    Log.e(TAG, "Error checking payments: " + response.code());
+                    Toast.makeText(getContext(), "Lỗi khi kiểm tra hóa đơn", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Payment>> call, Throwable t) {
+                Log.e(TAG, "Network error checking payments", t);
+                Toast.makeText(getContext(), "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void showCreateInvoiceDialog(Order order) {
+        new androidx.appcompat.app.AlertDialog.Builder(getContext())
+                .setTitle("Tạo hóa đơn thanh toán")
+                .setMessage("Bạn có muốn tạo hóa đơn thanh toán cho đơn hàng #" + order.getOrderId() + " không?")
+                .setPositiveButton("Tạo hóa đơn", (dialog, which) -> {
+                    createPaymentForOrder(order);
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+
+    private void createPaymentForOrder(Order order) {
+        Log.d(TAG, "Creating payment for order: " + order.getOrderId());
+        
+        // Tạo request từ order
+        // TODO: Cần lấy thông tin staff thực tế từ session/preferences
+        int staffUserId = 1; // Placeholder - cần lấy từ logged in user
+        String staffName = "Staff User"; // Placeholder - cần lấy từ logged in user
+        
+        CreatePaymentRequest request = CreatePaymentRequest.fromOrder(order, staffUserId, staffName);
+        
+        // Gọi API tạo payment
+        Call<Payment> call = apiService.createPaymentFromOrder(request);
+        call.enqueue(new Callback<Payment>() {
+            @Override
+            public void onResponse(Call<Payment> call, Response<Payment> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    Payment createdPayment = response.body();
+                    Log.d(TAG, "Payment created successfully: " + createdPayment.getPaymentId());
+                    
+                    // Thêm payment mới vào cache ngay lập tức
+                    cachedPayments.add(createdPayment);
+                    
+                    Toast.makeText(getContext(), 
+                        "Tạo hóa đơn thành công! Mã hóa đơn: #" + createdPayment.getPaymentId(), 
+                        Toast.LENGTH_LONG).show();
+                    
+                    // Refresh adapter để ẩn nút tạo hóa đơn
+                    if (orderAdapter != null) {
+                        orderAdapter.notifyDataSetChanged();
+                    }
+                    
+                } else {
+                    String errorMsg = "Lỗi khi tạo hóa đơn";
+                    if (response.code() == 400) {
+                        errorMsg = "Dữ liệu không hợp lệ";
+                    } else if (response.code() == 409) {
+                        errorMsg = "Đơn hàng đã có hóa đơn";
+                    }
+                    Log.e(TAG, "Error creating payment: " + response.code());
+                    Toast.makeText(getContext(), errorMsg, Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Payment> call, Throwable t) {
+                Log.e(TAG, "Network error creating payment", t);
+                Toast.makeText(getContext(), 
+                    "Lỗi kết nối: " + t.getMessage(), 
+                    Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    @Override
     public void onOrderClick(Order order) {
         Intent intent = OrderDetailActivity.newIntent(getContext(), order.getOrderId());
         startActivity(intent);
@@ -442,6 +581,37 @@ public class OrderFragment extends Fragment implements OrderAdapter.OnOrderActio
         this.shouldAutoRefresh = enabled;
         orderViewModel.enableAutoRefresh(enabled);
         Log.d(TAG, "Auto refresh " + (enabled ? "enabled" : "disabled"));
+    }
+
+    /**
+     * Load và cache payments để kiểm tra hasPayment nhanh hơn
+     */
+    private void loadAndCachePayments() {
+        Log.d(TAG, "Loading and caching payments...");
+        
+        Call<List<Payment>> call = apiService.getPayments();
+        call.enqueue(new Callback<List<Payment>>() {
+            @Override
+            public void onResponse(Call<List<Payment>> call, Response<List<Payment>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    cachedPayments.clear();
+                    cachedPayments.addAll(response.body());
+                    Log.d(TAG, "Cached " + cachedPayments.size() + " payments");
+                    
+                    // Cập nhật lại adapter để refresh button visibility
+                    if (orderAdapter != null) {
+                        orderAdapter.notifyDataSetChanged();
+                    }
+                } else {
+                    Log.e(TAG, "Error loading payments for cache: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Payment>> call, Throwable t) {
+                Log.e(TAG, "Failed to load payments for cache: " + t.getMessage());
+            }
+        });
     }
 
     // ========== PUBLIC METHODS ==========
